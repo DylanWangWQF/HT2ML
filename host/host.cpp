@@ -1,10 +1,3 @@
-//
-//  main.cpp
-//  foSDSC
-//
-//  Created by Qifan Wang on 12/06/21.
-//
-
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -13,33 +6,74 @@
 #include <sys/time.h>
 #include <chrono>
 
+// libs
 #include <NTL/BasicThreadPool.h>
 #include <NTL/matrix.h>
 #include <openenclave/host.h>
 #include <helib/helib.h>
 
-#include "hematrix.h"
-#include "LoadMatrix.h"
-#include "fosdsc_u.h"
+#include "data/DatasetOperations.h"
+#include "HEMat/CKKSmatrix.h"
+#include "utils/LoadData.h"
+#include "utils/MatOpe.h"
+#include "teehe_u.h"
 
 oe_enclave_t* enclave = NULL;
+// constexpr int MNIST_CHANNELS = 1;
+constexpr int MNIST_HEIGHT = 28;
+constexpr int MNIST_WIDTH = 28;
+// constexpr int MNIST_LABELS = 10;
 
-// bool check_simulate_opt(int* argc, const char* argv[])
-// {
-//     for (int i = 0; i < *argc; i++)
-//     {
-//         if (strcmp(argv[i], "--simulate") == 0)
-//         {
-//             cout << "Running in simulation mode" << endl;
-//             memmove(&argv[i], &argv[i + 1], (*argc - i) * sizeof(char*));
-//             (*argc)--;
-//             return true;
-//         }
-//     }
-//     return false;
-// }
+int RefreshSingleCtxt(Ctxt& resCtxt, uint64_t& totalLength)
+{
+    oe_result_t result;
+    int ret = 0;
+    stringstream css;
 
-int CtxtExchange(vector<Ctxt>& resCtxt, vector<Ctxt>& enclaveCtxt, Meta& meta, uint64_t& totalLength, size_t batchIdx){
+    // ctxt from the host
+    string HostCtxtTemp = "";
+    size_t ectxt_len = 0;
+    uint8_t *ectxt = NULL;
+    // ctxt from the enclave
+    string EnclaveCtxtTemp = "";
+    uint8_t *octxt = NULL;
+    size_t octxt_len = 0;
+
+    resCtxt.writeTo(css);
+
+    HostCtxtTemp = css.str();
+    ectxt_len = HostCtxtTemp.length();
+    ectxt = (uint8_t*) HostCtxtTemp.c_str();
+    totalLength += ectxt_len;
+
+    cout << "Host: send/receive Ctxt to/from enclave:" << endl;
+    result = singleCtxtTransform(enclave, &ret, ectxt, ectxt_len, &octxt, &octxt_len);
+    if (result != OE_OK){
+        cerr << "Host: transform HE ciphertext failed. result = " << result << endl;
+        ret = 1;
+        goto exit;
+    }
+    if (ret != 0)
+    {
+        cerr << "Host: transform HE ciphertext failed. ret = " << ret << endl;
+        goto exit;
+    }
+
+    css.str(std::string());
+    css.clear();
+    EnclaveCtxtTemp = std::string(octxt, octxt + octxt_len);
+    css << EnclaveCtxtTemp;
+    resCtxt.Ctxt::read(css);
+    totalLength += octxt_len;
+
+exit:
+    cout << "Host: free memory for ectxt and octxt!" << endl;
+    free(octxt);
+    return ret;
+}
+
+int RefreshMultipleCtxts(vector<Ctxt>& resCtxt, uint64_t& totalLength)
+{
     oe_result_t result;
     int ret = 0;
     stringstream css;
@@ -58,32 +92,15 @@ int CtxtExchange(vector<Ctxt>& resCtxt, vector<Ctxt>& enclaveCtxt, Meta& meta, u
     for (size_t i = 0; i < num_ectxt; i++)
     {
         resCtxt[i].writeTo(css);
-
-        // Mat<long> mat;
-        // vector<long> cmsg;
-        // meta.data->ea.decrypt(resCtxt[i], meta.data->secretKey, cmsg);
-        // mat.SetDims(16, 16);
-    
-        // long k = 0;
-        // for(long i = 0; i < 16; ++i){
-        //     for(long j = 0; j < 16; ++j){
-        //         mat[i][j] = cmsg[k];
-        //         k++;
-        //     }
-        // }
-        // cout << "Decrypt resCtxt[" << i << "]: " << endl;
-        // cout << mat << endl;
     }
+
     HostCtxtTemp = css.str();
     ectxt_len = HostCtxtTemp.length();
-    cout << "Host: check ectxt_len: " << ectxt_len <<endl;
     ectxt = (uint8_t*) HostCtxtTemp.c_str();
-    cout << "Host: check ectxt: " << ectxt <<endl;
     totalLength += ectxt_len;
-    cout << "Host: check totalLength after adding ectxt_len: " << totalLength <<endl;
 
     cout << "Host: send/receive Ctxt to/from enclave:" << endl;
-    result = multipleCtxtsTransform(enclave, &ret, ectxt, ectxt_len, num_ectxt, batchIdx, &octxt, &octxt_len, &num_octxt);
+    result = multipleCtxtsTransform(enclave, &ret, ectxt, ectxt_len, num_ectxt, &octxt, &octxt_len);
     if (result != OE_OK){
         cerr << "Host: transform HE ciphertext failed. result = " << result << endl;
         ret = 1;
@@ -95,133 +112,225 @@ int CtxtExchange(vector<Ctxt>& resCtxt, vector<Ctxt>& enclaveCtxt, Meta& meta, u
         goto exit;
     }
 
-    enclaveCtxt = vector<Ctxt>(num_octxt, Ctxt(meta.data->publicKey));
     css.str(std::string());
     css.clear();
-    cout << "Host: check octxt_len: " << octxt_len <<endl;
     EnclaveCtxtTemp = std::string(octxt, octxt + octxt_len);
     css << EnclaveCtxtTemp;
     for (size_t i = 0; i < num_octxt; ++i)
     {
-        cout << "Host: read " << i << "-th Ctxt from enclave!" << endl;
-        enclaveCtxt[i].Ctxt::read(css);
+        resCtxt[i].Ctxt::read(css);
     }
     totalLength += octxt_len;
-    cout << "Host: check totalLength after adding octxt_len: " << totalLength <<endl;
-    
+
 exit:
-    cout << "Host: free strings in CtxtExchange()!" << endl;
-    HostCtxtTemp.shrink_to_fit();
-    EnclaveCtxtTemp.shrink_to_fit();
     cout << "Host: free memory for ectxt and octxt!" << endl;
     free(octxt);
     return ret;
 }
 
-// 2 change places: nrows, Params
 int main(int argc, const char * argv[]) {
+    SetNumThreads(4); // set threads for parallel operations when using NTL
+
     /*---------------------------------------*/
-    //  Setup
+    //  Load the dataset
     /*---------------------------------------*/
-    SetNumThreads(16);
+    cout << "Loading test imgs & labels..." << endl;
+    size_t test_img_limit = 0;
+    vector<vector<float>> test_imgs;
+    vector<unsigned char> test_lbls;
+    string datasets_dir = "/home/dylan/code/TEE-HE-PPML/scripts";
+    test_imgs = loadMnistTestImages(datasets_dir, test_img_limit);
+    test_lbls = loadMnistTestLabels(datasets_dir, test_img_limit);
+    // cout << "Dimension of imgs: (" << test_imgs.size() << ", " << test_imgs[0].size() << ")" << endl << endl;
+    // cout << "Print first image: " << endl;
+    // for (int i = 0; i < test_imgs[0].size(); i++) {
+    //     cout <<  test_imgs[0][i] << " ";
+    // }
+    // cout << endl << "Number of labels for test: " << test_lbls.size() << endl << endl;
+
+    /*---------------------------------------*/
+    //  Crop the images
+    /*---------------------------------------*/
+    int num_imgs = 64;
+    int num_channels = 4;
+    int kernel_size = 7;
+    int stride = 3;
+    Mat<RR>* imgMat = new Mat<RR>[num_imgs]; // 64 * 28 * 28
+    for (int k = 0; k < num_imgs; k++)
+    {
+        imgMat[k].SetDims(MNIST_HEIGHT, MNIST_WIDTH);
+        int p_loc = 0;
+        for(long i = 0; i < MNIST_HEIGHT ; i++)
+        {
+            for(long j = 0; j < MNIST_WIDTH; j++)
+            {
+                imgMat[k][i][j] = to_RR(test_imgs[k][p_loc]);
+                // imgMat[k][i][j] = to_RR( (int)(100.0 * test_imgs[k][p_loc] + 0.5) / 100.0); // two pos after point
+                p_loc++;
+            }
+        }
+    }
+    // cout << "Generated image matrix imgMat: " << endl << imgMat[0] << endl;
+
+    // Extract windows from 28 * 28 images (e.g., imgMat[0] ---> first image)
+    int window_size = ceil((MNIST_HEIGHT - kernel_size) / stride) + 1; // 8
+    int num_windows = window_size * window_size; // 64
+    int num_kernels = kernel_size * kernel_size; // 49
+    Mat<RR>* feaMat = new Mat<RR>[num_kernels]; // matrix for ct.I_{i,j}
+
+    int temp_i, temp_j, temp_x, temp_y, temp_idx2;
+    int temp_idx1 = 0;
+    for (temp_i = 0; temp_i < kernel_size; ++temp_i) // 7 * 7
+    {
+        for (temp_j = 0; temp_j < kernel_size; ++temp_j)
+        {
+            feaMat[temp_idx1].SetDims(num_windows, num_imgs); // 64 * 64
+            for(temp_y = 0; temp_y < num_imgs; ++temp_y) // from 0-th image to 63-th image
+            {
+                temp_idx2 = 0;
+                for(temp_x = 0; temp_x < num_windows ; ++temp_x) // from 0-th window (0, 0) to 63-th window (7, 7)
+                {
+                    feaMat[temp_idx1][temp_x][temp_y] = imgMat[temp_y][(temp_x / window_size) * stride + temp_i][(temp_x % window_size) * stride + temp_j];
+                }
+            }
+            temp_idx1++;
+        }
+    }
+    // cout << "Generated feature matrix feaMat: " << endl << feaMat[0] << endl;
+    
+    /*---------------------------------------*/
+    //  Load the model
+    /*---------------------------------------*/
+    cout << "Loading the model params..." << endl;
+    Mat<RR> raw_kernel_weights; // 28 * 7
+    int kernel_dim1, kernel_dim2;
+    Mat<RR> raw_dense1_weights; // 64 * 256
+    int dense1_dim1, dense1_dim2;
+    Mat<RR> raw_dense2_weights; // 10* 64
+    int dense2_dim1, dense2_dim2;
+    string datafile1 = "/home/dylan/code/TEE-HE-PPML/host/model/kernels_weights.dat";
+    string datafile2 = "/home/dylan/code/TEE-HE-PPML/host/model/dense1_weights.dat";
+    string datafile3 = "/home/dylan/code/TEE-HE-PPML/host/model/dense2_weights.dat";
+    if (!LoadData(raw_kernel_weights, kernel_dim1, kernel_dim2, datafile1)) {
+        return 0;
+    }
+    // cout << "Generated kernel weights matrix raw_kernel_weights: " << endl << raw_kernel_weights << endl;
+    if (!LoadData(raw_dense1_weights, dense1_dim1, dense1_dim2, datafile2)) {
+        return 0;
+    }
+    if (!LoadData(raw_dense2_weights, dense2_dim1, dense2_dim2, datafile3)) {
+        return 0;
+    }
+
+    // Crop the weights matrix according to E2DM
+    // 1. matrix for ct.K_{i, j}_{k}, num = 28 * 7
+    Mat<RR>* kernel_weights = new Mat<RR>[kernel_dim1 * kernel_dim2];
+    int temp_idx = 0;
+    for (int m = 0; m < kernel_dim1; m++) // 28
+    {
+        for (int n = 0; n < kernel_dim2; n++) // 7
+        {
+            kernel_weights[temp_idx].SetDims(num_windows, num_imgs);
+            for (int i = 0; i < num_windows; i++) // 64
+            {
+                for (int j = 0; j < num_imgs; j++) // 64
+                {
+                    kernel_weights[temp_idx][i][j] = raw_kernel_weights[m][n];
+                    // kernel_weights[temp_idx][i][j] = to_RR((int)(100.0 * to_double(raw_kernel_weights[m][n]) + 0.5) / 100.0);
+                }
+            }
+            temp_idx++;
+        }
+    }
+    // cout << "Generated kernel_weights matrix kernel_weights[0]: " << endl << kernel_weights[0] << endl;
+
+    // 2. matrix for ct.W_{k}, num = 256/64 =4
+    Mat<RR>* dense1_weights = new Mat<RR>[dense1_dim2 / dense1_dim1];
+    for (int k = 0; k < dense1_dim2 / dense1_dim1; k++)
+    {
+        dense1_weights[k].SetDims(dense1_dim1, dense1_dim1);
+        for (int i = 0; i < dense1_dim1; i++) // 64
+        {
+            for (int j = 0; j < dense1_dim1; j++) // 256
+            {
+                dense1_weights[k][i][j] = raw_dense1_weights[i][k * dense1_dim1 + j];
+                // dense1_weights[k][i][j] = to_RR((int)(100.0 * to_double(raw_dense1_weights[i][k * dense1_dim1 + j]) + 0.5) / 100.0);
+            }
+        }
+    }
+    // cout << "Generated dense1_weights matrix dense1_weights[0]: " << endl << dense1_weights[0] << endl;
+    
+    // 3. matrix for ct.V, num = 1, pad zeros into matrix
+    Mat<RR> dense2_weights;
+    dense2_weights.SetDims(16, dense2_dim2); // 16 * 64
+    for (int i = 0; i < 16; i++) // pad 16-10=6 rows with zeros
+    {
+        for (int j = 0; j < dense2_dim2; j++) // 64
+        {
+            if (i < 10)
+            {
+                dense2_weights[i][j] = raw_dense2_weights[i][j];
+            }
+            else
+            {
+                dense2_weights[i][j] = to_RR(0);
+            }
+        }
+    }
+    // cout << "Generated dense2_weights matrix dense2_weights: " << endl << dense2_weights << endl;
+
+    /*-----------------------------------------------Load images and models end!----------------------------------------------------------------------*/
+
+    /*---------------------------------------*/
+    //  Setup and Initialize HE params
+    /*---------------------------------------*/
     // Setup the encalve params
     oe_result_t result;
     int ret = 0;
     const uint32_t flags = OE_ENCLAVE_FLAG_DEBUG_AUTO;
 
-    // Setup the Matrix params
-    long nrows = 16;
-    long ncols = nrows;
-    HEMatpar HEmatpar;
-    readHEMatpar(HEmatpar, nrows, ncols);
-
-    // Setup the HE params
-    cout << "Host: create the Context: " << endl;
-    Params param(/*m=*/9472, /*p=*/127, /*r=*/1, /*bits=*/119, /*c=*/2);
-    // Params param(/*m=*/16384, /*p=*/6143, /*r=*/1, /*bits=*/180, /*c=*/2);
-    // Params param(/*m=*/16384, /*p=*/8191, /*r=*/1, /*bits=*/120, /*c=*/2);
-    Meta meta;
+    ckksMatpar ckksmatpar;
+    long ncols = 64, nrows = 64, subdim = 16;
+    readckksMatpar(ckksmatpar, nrows, ncols, subdim); // subdim used in below RecMul
+    ckksParams param(/*m=*/16 * 1024, /*bits=*/179, /*precision=*/20, /*c=*/2);
+    ckksMeta meta;
     meta(param);
-
-    cout << "Host: print Context contents: " << endl;
+    cout << "HE Context contents: " << endl;
     meta.data->context.printout();
-    HEmatrix HEmatrix(HEmatpar, meta);
+    CKKSmatrix CKKSmatrix(ckksmatpar, meta);
 
-    //setup stringstream
+    //setup stringstream, record size and time
     stringstream ss;
+    uint64_t totalLength = 0;
 
-    // Setup the passed context, pk and sk
+    // Setup the passed context, pk and sk, ctxts
     string ContextStringTemp = "";
     size_t context_len = 0;
     uint8_t* hecontext = NULL;
 
-    // Receive the raw tree matrix
-    string EnclaveTreeTemp = "";
-    uint8_t *rawCtxt = NULL;
-    size_t rawCtxt_len = 0;
-    size_t num_rawCtxt = 0;
-
-    //Send the test data Mat to enclave for classification
-    string testTemp = "";
-    size_t num_EvaCtxt = 0;
-    size_t EvaCtxt_len = 0;
-    uint8_t *EvaCtxt = NULL;
-
-    Mat<long>* RawDmatrix; // store the raw data in Mat 
-    long numMat = 0; // number of Mat in RawDmatrix
-    size_t num_HostCtxt = 1; // number of Ctxt in HostCtxt vector
-    size_t queueCtxt_Idx = 0;
-    size_t resCtxt_Idx = 0;
-    // store the ctxt
-    queue<vector<Ctxt>> QCtxt;
-    // queue<Ctxt> QCtxt;
-
-    // polynomials used for Mat Multiplication, zzX* for preprocessing
-    zzX* Initpoly;
-    // zzX** Initpoly;
-    // zzX* shiftpoly;
-
-    // Setup the ctxt for following use
-    Ctxt queueCtxt(meta.data->publicKey);
-    vector<vector<Ctxt>> HostCtxt;
-    vector<Ctxt> EnclaveCtxt;
-    vector<Ctxt> resCtxt;
-    // Actxts: used in Mul_preprocessing
-    vector<Ctxt> Actxts;
-    // tempActxts used in Mul_preprocessing
-    vector<Ctxt> tempActxts;
-
-    // record the communication cost and computational time
-    uint64_t totalLength = 0;
-    auto start= chrono::steady_clock::now();
-    auto end = std::chrono::steady_clock::now();
-    auto diff = end - start;
-    double timeElapsed = 0.0;
-    double ClientTimeTemp = 0.0;
+    // Setup ctxts during inference
+    vector<Ctxt> ct_I(num_kernels, Ctxt(meta.data->publicKey));
+    vector<Ctxt> ct_K(kernel_dim1 * kernel_dim2, Ctxt(meta.data->publicKey));
+    vector<vector<Ctxt>> ct_W;
+    vector<Ctxt> ct_V;
+    vector<Ctxt> ct_Ck(num_channels, Ctxt(meta.data->publicKey));
+    Ctxt ct_F(meta.data->publicKey);
+    vector<EncodedPtxt> Initpoly;
+    Ctxt inference_result(meta.data->publicKey);
 
     /*---------------------------------------*/
     //  Create the enclave
+    //  Send context and keys to enclave
     /*---------------------------------------*/
-    // Command Format: ./host/fosdsc_host ./enclave/enclave.signed
-
-    // Check the simulation
-    // if (check_simulate_opt(&argc, argv))
-    // {
-    //     flags |= OE_ENCLAVE_FLAG_SIMULATE;
-    // }
-
+    // Command Format: ./host/teehe_host ./enclave/enclave.signed
     cout << "Host: create enclave for image:" << argv[1] << endl;
-    result = oe_create_fosdsc_enclave(argv[1], OE_ENCLAVE_TYPE_SGX, flags, NULL, 0, &enclave);
+    result = oe_create_teehe_enclave(argv[1], OE_ENCLAVE_TYPE_SGX, flags, NULL, 0, &enclave);
     if (result != OE_OK)
     {
-        cerr << "oe_create_fosdsc_enclave() failed with " << argv[0] << " " << result << endl;
+        cerr << "oe_create_teehe_enclave() failed with " << argv[0] << " " << result << endl;
         ret = 1;
         goto exit;
     }
-
-    /*-------------------------------------------------------------------*/
-    //  Call into the enclave to transform the HE params
-    /*-------------------------------------------------------------------*/
 
     // send context to enclave
     meta.data->context.writeTo(ss);
@@ -230,11 +339,10 @@ int main(int argc, const char * argv[]) {
     ContextStringTemp = ss.str();
     context_len = ContextStringTemp.size();
     hecontext = (uint8_t*)ContextStringTemp.c_str();
-    // cout << "Host: check hecontext: " << hecontext << endl;
-    cout << "Host: check context_len, containing context, sk and pk: " << context_len << endl;
+    cout << "Host: check size of context and keys: " << ((double) context_len / (double)(1024 * 1024)) << " MB" << endl;
 
     cout << "Host: transform HE params (context, sk and pk) into enclave:" << endl;
-    result = enclave_init(enclave, &ret, hecontext, context_len, &rawCtxt, &rawCtxt_len, &num_rawCtxt);
+    result = enclave_init(enclave, &ret, hecontext, context_len);
     if (result != OE_OK){
         cerr << "Host: transform HE params failed. OE result = " << result << endl;
         ret = 1;
@@ -246,160 +354,98 @@ int main(int argc, const char * argv[]) {
         goto exit;
     }
 
-    cout << "Host: receive Root Tree Mats from enclave:" << endl;
-    // receive root tree Mat after enclave initialization
-    EnclaveCtxt = vector<Ctxt>(num_rawCtxt, Ctxt(meta.data->publicKey));
-    ss.str(std::string());
-    ss.clear();
-    EnclaveTreeTemp = std::string(rawCtxt, rawCtxt + rawCtxt_len);
-    ss << EnclaveTreeTemp;
-    for (size_t i = 0; i < num_rawCtxt; ++i)
+    /*---------------------------------------*/
+    //  Pre-process polynominals
+    /*---------------------------------------*/
+    CKKSmatrix.genMultBPoly(Initpoly);
+
+    /*---------------------------------------*/
+    //  Encrypt the images
+    /*---------------------------------------*/
+    cout << "Encrypting the images (feaMat, size = 7 * 7)..." << endl;
+    for (int i = 0; i < num_kernels; i++) // 49
     {
-        cout << "Host: read " << i << "-th Root Tree Ctxt from enclave!" << endl;
-        EnclaveCtxt[i].Ctxt::read(ss);
-
-        // Mat<long> test;
-        // HEmatrix.decryptZmat(test, EnclaveCtxt[i]);
-        // cout << "Decrypt root node EnclaveCtxt[" << i << "]: " << endl;
-        // cout << test << endl;
+        CKKSmatrix.encryptRmat(ct_I[i], feaMat[i]);
     }
-
-    totalLength += rawCtxt_len;
-    cout << "Host: the length of Root Ctxts from Enclave: " << rawCtxt_len << endl;
-    cout << "Host: Check the length of totalLength: " << totalLength << endl;
     
     /*---------------------------------------*/
-    //  Load DataMatrix
+    //  Encrypt the model params
     /*---------------------------------------*/
-    cout << "Host: Load the raw data matrix." << endl;
-    ProcessDMatrix(RawDmatrix, numMat, nrows, true);
-    // cout << "Host: Check the first sub Mat in RawDmatrix: " << endl;
-    // cout << RawDmatrix[0] << endl;
-
-    /*---------------------------------------*/
-    //  GenPoly
-    /*---------------------------------------*/
-    cout << "Host: Generate the Multi Poly." << endl;
-    HEmatrix.genMultBPoly(Initpoly);
-    // HEmatrix.genMultPoly(Initpoly);
-    // cout << "Host: Generate the Shift Poly." << endl;
-    // HEmatrix.genShiftPoly(shiftpoly);
-
-    /*---------------------------------------*/
-    //  Encryption
-    /*---------------------------------------*/
-    // This part should be the cost of client
-    cout << "Host: encrypt the matrix and send them to the queue." << endl;
-    start= chrono::steady_clock::now();
-    for (size_t i = 0; i < numMat; ++i)
+    // 1. ct.K_{i, j}_{k}
+    cout << "Preparing model params ciphertext, ct_K..." << endl;
+    for (int i = 0; i < ct_K.size(); i++) // 28 * 7
     {
-        HEmatrix.genInitActxt(Actxts, RawDmatrix[i]);
-        // cout << "Host: check Actxts size (should always be 16): " << Actxts.size() << endl;
-        QCtxt.push(Actxts);
+        CKKSmatrix.encryptRmat(ct_K[i], kernel_weights[i]);
     }
-    end = std::chrono::steady_clock::now();
-    diff = end - start;
-    timeElapsed = chrono::duration <double, milli> (diff).count()/1000.0;
-    cout << "------------------------------------------------------------------------" << endl;
-    cout << "Host: Client Encryption Time= " << timeElapsed << " s" << endl;
-    cout << "------------------------------------------------------------------------" << endl;
-    // cout << "Host: check QCtxt size: " << QCtxt.size() << endl;
-    ClientTimeTemp = timeElapsed;
 
-    /*---------------------------------------*/
-    //  Multiplication
-    /*---------------------------------------*/
-    // Confirm hte batch size
-    num_HostCtxt = 64 / nrows;
-    cout << "Host: check num_HostCtxt: " << num_HostCtxt << endl;
-
-    start= chrono::steady_clock::now();
-    while (!QCtxt.empty())
+    // 2. ct.W_{k}, preprocessed ctxt
+    cout << "Preparing model params ciphertext, ct_W..." << endl;
+    for (int i = 0; i < dense1_dim2 / dense1_dim1; i++) // 256/64=4
     {
-        if (QCtxt.size() < num_HostCtxt)
-        {
-            queueCtxt_Idx = QCtxt.size(); // may < num_HostCtxt
-        }else{
-            queueCtxt_Idx = num_HostCtxt;
-        }
-        cout << "Host: check final queueCtxt_Idx: " << queueCtxt_Idx << endl;
-        
-        // ensure HostCtxt store the latest ctxts
-        HostCtxt.clear();
-        // HostCtxt = vector<Ctxt>(num_HostCtxt, Ctxt(meta.data->publicKey));
-        for(size_t i = 0; i < queueCtxt_Idx; ++i)
-        {
-            HostCtxt.push_back(QCtxt.front());
-            QCtxt.pop();
-        }
-        
-        // cout << "Host: check HostCtxt size: " << HostCtxt.size() << endl;
-        // cout << "Host: check EnclaveCtxt size: " << EnclaveCtxt.size() << endl;
-        // cout << "Host: check resCtxt size: " << (HostCtxt.size() * EnclaveCtxt.size()) << endl;
-        resCtxt = vector<Ctxt>((HostCtxt.size() * EnclaveCtxt.size()), Ctxt(meta.data->publicKey));
-
-        // NTL_EXEC_RANGE(HostCtxt.size(), first, last);
-        // for (size_t i = first; i < last; ++i)
-        for (size_t i = 0; i < HostCtxt.size(); ++i)
-        {
-            // here if we use multi-thread, cause low performance, or try more threads
-            // NTL_EXEC_RANGE(EnclaveCtxt.size(), first, last);
-            // for (size_t j = first; j < last; ++j)
-            for (size_t j = 0; j < EnclaveCtxt.size(); ++j)
-            {
-                // Ensure that HostCtxt[i] is not changed in last HEmatmul_preprocessing;
-                tempActxts.clear();
-                tempActxts.assign(HostCtxt[i].begin(), HostCtxt[i].end());
-                // tempActxts[j].assign(HostCtxt[i].begin(), HostCtxt[i].end());
-                cout << "Host: " << i << "-th HostCtxt, " << j << "-th EnclaveCtxt, Mat Multiplication: " << endl;
-                // HEmatrix.HEmatmul_preprocessing(resCtxt[(i * EnclaveCtxt.size() + j)], tempActxts[j], EnclaveCtxt[j], Initpoly);
-                HEmatrix.HEmatmul_preprocessing(resCtxt[(i * EnclaveCtxt.size() + j)], tempActxts, EnclaveCtxt[j], Initpoly);
-                // HEmatrix.HEmatmul(resCtxt[(i * EnclaveCtxt.size() + j)], HostCtxt[i], EnclaveCtxt[j], Initpoly, shiftpoly);
-            }
-            // NTL_EXEC_RANGE_END;
-        }
-        // NTL_EXEC_RANGE_END;
-
-        // clear the EnclaveCtxt, waiting for the ctxt from the enclave
-        //EnclaveCtxt.clear();
-        ret = CtxtExchange(resCtxt, EnclaveCtxt, meta, totalLength, queueCtxt_Idx);
-        if (ret != 0)
-        {
-            cerr << "Host: CtxtExchange failed with " << ret << endl;
-            goto exit;
-        }
+        vector<Ctxt> temp;
+        CKKSmatrix.genInitActxt(temp, dense1_weights[i]);
+        ct_W.push_back(temp);
     }
-    end = std::chrono::steady_clock::now();
-    diff = end - start;
-    timeElapsed = chrono::duration <double, milli> (diff).count()/1000.0;
-    cout << "------------------------------------------------------------------------" << endl;
-    cout << "Host: Total Training Time = " << timeElapsed << " s" << endl;
-    cout << "Host: Total Training Time (min) = " << (timeElapsed / 60) << " min" << endl;
-    cout << "------------------------------------------------------------------------" << endl;
 
-    cout << "Host: Total Communication Cost = " << ((double) totalLength / (double)(1024 * 1024)) << " MB" << endl;
-    cout << "Host: Client Encryption Time= " << ClientTimeTemp << " s" << endl;
+    // 3. ct.V, preprocessed ctxt
+    cout << "Preparing model params ciphertext, ct_V..." << endl;
+    CKKSmatrix.genInitRecActxt(ct_V, dense2_weights);
 
-    start= chrono::steady_clock::now();
-    num_EvaCtxt = 1;
-    testTemp = "0101011001010100";
-    EvaCtxt_len = testTemp.length();
-    // cout << "Host: check EvaCtxt_len: " << EvaCtxt_len <<endl;
-    EvaCtxt = (uint8_t*) testTemp.c_str();
-    // cout << "Host: check EvaCtxt: " << EvaCtxt <<endl;
-    // invoke ECALL for classification
-    result = HT_Classify(enclave, &ret, EvaCtxt, EvaCtxt_len, num_EvaCtxt);
-    if (result != OE_OK){
-        cerr << "Host: calling into enclave for classification failed. OE result = " << result << endl;
-        ret = 1;
+    /*---------------------------------------*/
+    //  Homomorphically perform CNN inference
+    /*---------------------------------------*/
+    // 1. HE conv layer, ct.I_{i, j} and ct.K_{i, j}_{k}
+    cout << "Inference-convolution layer..." << endl;
+    for (int k = 0; k < num_channels; k++) // 4
+    {
+        for (int i = 0; i < num_kernels; i++) // 49
+        {
+            Ctxt tmp = ct_I[i];
+            tmp.multLowLvl(ct_K[k * num_kernels + i]);
+            // tmp *= ct_K[k * num_kernels + i];
+            ct_Ck[k] += tmp;
+        }
+        ct_Ck[k].reLinearize(); // return to a canonical state
+    }
+
+    // 2. HE square layer
+    cout << "Inference-square1 layer..." << endl;
+    for (int k = 0; k < num_channels; k++) // 4
+    {
+        ct_Ck[k].square();
+    }
+
+    // Todo: set a if() statement to check if invoking refreshCtxts()
+    ret = RefreshMultipleCtxts(ct_Ck, totalLength);
+    if (ret != 0)
+    {
+        cerr << "Host: RefreshMultipleCtxts failed with " << ret << endl;
         goto exit;
     }
-    end = std::chrono::steady_clock::now();
-    diff = end - start;
-    timeElapsed = chrono::duration <double, milli> (diff).count()/1000.0;
-    cout << "------------------------------------------------------------------------" << endl;
-    cout << "Host: Total Evaluation Time= " << timeElapsed << " s" << endl;
-    cout << "------------------------------------------------------------------------" << endl;
+
+    // 3. HE FC-1 layer, 64 * 256 X 256 * 64 = 64 * 64, ct.W_{k} and ct_C_{k}
+    cout << "Inference-FC-1 layer..." << endl;
+    for (int k = 0; k < num_channels; k++) // 4
+    {
+        Ctxt temp(meta.data->publicKey);
+        CKKSmatrix.HEmatmul_preprocessing(temp, ct_W[k], ct_Ck[k], Initpoly);
+        ct_F += temp;
+    }
+
+    ret = RefreshSingleCtxt(ct_F, totalLength);
+    if (ret != 0)
+    {
+        cerr << "Host: RefreshSingleCtxt failed with " << ret << endl;
+        goto exit;
+    }
+
+    // 4. HE square layer
+    cout << "Inference-square2 layer..." << endl;
+    ct_F.square();
+
+    // 5. HE FC-2 layer, 10 * 64 X 64 * 64 = 10 * 64, ct.V and ct_F
+    cout << "Inference-FC-2 layer..." << endl;
+    CKKSmatrix.HErmatmul_preprocessing(inference_result, ct_V, ct_F, Initpoly);
 
 exit:
     // cannot free, otherwise cause double free corruption

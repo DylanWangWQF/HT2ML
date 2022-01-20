@@ -1,27 +1,29 @@
 add_custom_command(
-  OUTPUT fosdsc_u.h fosdsc_u.c fosdsc_args.h
-  DEPENDS ${CMAKE_SOURCE_DIR}/fosdsc.edl
+  OUTPUT teehe_u.h teehe_u.c teehe_args.h
+  DEPENDS ${CMAKE_SOURCE_DIR}/teehe.edl
   COMMAND
-    openenclave::oeedger8r --untrusted ${CMAKE_SOURCE_DIR}/fosdsc.edl
+    openenclave::oeedger8r --untrusted ${CMAKE_SOURCE_DIR}/teehe.edl
     --search-path ${OE_INCLUDEDIR} --search-path
     ${OE_INCLUDEDIR}/openenclave/edl/sgx)
 
 set(CMAKE_CXX_FLAGS "-g -O3 -pthread")
 
-add_executable(fosdsc_host
-               host.cpp hematrix.cpp LoadMatrix.cpp ${CMAKE_CURRENT_BINARY_DIR}/fosdsc_u.c)
+# message("CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}")
+
+add_executable(teehe_host
+               host.cpp ${CMAKE_CURRENT_SOURCE_DIR}/data/DatasetOperations.cpp ${CMAKE_CURRENT_SOURCE_DIR}/HEMat/CKKSmatrix.cpp ${CMAKE_CURRENT_SOURCE_DIR}/utils/LoadData.cpp ${CMAKE_CURRENT_SOURCE_DIR}/utils/MatOpe.cpp ${CMAKE_CURRENT_BINARY_DIR}/teehe_u.c)
 
 if (WIN32)
-  copy_oedebugrt_target(fosdsc_host_oedebugrt)
-  add_dependencies(fosdsc_host fosdsc_host_oedebugrt)
+  copy_oedebugrt_target(teehe_host_oedebugrt)
+  add_dependencies(teehe_host teehe_host_oedebugrt)
 endif ()
 
 # Needed for the generated file switchless_sample_u.h 
-target_include_directories(
-    fosdsc_host PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(teehe_host PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+# /data ${CMAKE_CURRENT_SOURCE_DIR}/data/mnist/include/mnist ${CMAKE_CURRENT_SOURCE_DIR}/HEMat ${CMAKE_CURRENT_SOURCE_DIR}/utils
 
 target_link_libraries(
-  fosdsc_host 
+  teehe_host 
   openenclave::oehost
   -L${CMAKE_CURRENT_SOURCE_DIR}/lib
   libhelib.a

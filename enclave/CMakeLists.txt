@@ -1,8 +1,8 @@
 add_custom_command(
-  OUTPUT fosdsc_t.h fosdsc_t.c fosdsc_args.h
-  DEPENDS ${CMAKE_SOURCE_DIR}/fosdsc.edl
+  OUTPUT teehe_t.h teehe_t.c teehe_args.h
+  DEPENDS ${CMAKE_SOURCE_DIR}/teehe.edl
   COMMAND
-    openenclave::oeedger8r --trusted ${CMAKE_SOURCE_DIR}/fosdsc.edl
+    openenclave::oeedger8r --trusted ${CMAKE_SOURCE_DIR}/teehe.edl
     --search-path ${OE_INCLUDEDIR} --search-path
     ${OE_INCLUDEDIR}/openenclave/edl/sgx)
 
@@ -12,11 +12,11 @@ add_custom_command(
 # )
 
 add_custom_command(
-  OUTPUT dispatcher.o HoeffdingCategoricalSplit.o HoeffdingTree.o
-  COMMAND apkman exec clang++ -std=c++17 -fPIE -g -c -I${CMAKE_CURRENT_SOURCE_DIR}/include -I/opt/openenclave/include ${CMAKE_CURRENT_SOURCE_DIR}/dispatcher.cpp ${CMAKE_CURRENT_SOURCE_DIR}/mHT/*.cpp
+  OUTPUT dispatcher.o
+  COMMAND apkman exec clang++ -std=c++17 -fPIE -g -c -I${CMAKE_CURRENT_SOURCE_DIR}/include -I/opt/openenclave/include ${CMAKE_CURRENT_SOURCE_DIR}/dispatcher.cpp
 )
 
-add_executable(enclave ecalls.cpp dispatcher.o HoeffdingCategoricalSplit.o HoeffdingTree.o stubs.c ${CMAKE_CURRENT_BINARY_DIR}/fosdsc_t.c)
+add_executable(enclave ecalls.cpp dispatcher.o stubs.c ${CMAKE_CURRENT_BINARY_DIR}/teehe_t.c)
 
 
 if (WIN32)
