@@ -19,7 +19,7 @@ if (WIN32)
 endif ()
 
 # Needed for the generated file switchless_sample_u.h 
-target_include_directories(teehe_host PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(teehe_host PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/data ${CMAKE_CURRENT_SOURCE_DIR}/data/mnist/include/mnist ${CMAKE_CURRENT_SOURCE_DIR}/HEMat ${CMAKE_CURRENT_SOURCE_DIR}/utils  ${CMAKE_CURRENT_BINARY_DIR})
 # /data ${CMAKE_CURRENT_SOURCE_DIR}/data/mnist/include/mnist ${CMAKE_CURRENT_SOURCE_DIR}/HEMat ${CMAKE_CURRENT_SOURCE_DIR}/utils
 
 target_link_libraries(
