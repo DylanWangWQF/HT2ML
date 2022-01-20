@@ -58,20 +58,20 @@ add_custom_command(
 # Sign enclave
 add_custom_command(
   OUTPUT enclave/enclave.signed
-  DEPENDS enclave enclave/teehe.conf private.pem
+  DEPENDS enclave enclave/fosdsc.conf private.pem
   COMMAND openenclave::oesign sign -e $<TARGET_FILE:enclave> -c
-          ${CMAKE_SOURCE_DIR}/enclave/teehe.conf -k private.pem)
+          ${CMAKE_SOURCE_DIR}/enclave/fosdsc.conf -k private.pem)
 
 add_custom_target(sign ALL DEPENDS enclave/enclave.signed)
 
 if ((NOT DEFINED ENV{OE_SIMULATION}) OR (NOT $ENV{OE_SIMULATION}))
   add_custom_target(
     run
-    DEPENDS teehe_host sign
-    COMMAND teehe_host ${CMAKE_BINARY_DIR}/enclave/enclave.signed)
+    DEPENDS fosdsc_host sign
+    COMMAND fosdsc_host ${CMAKE_BINARY_DIR}/enclave/enclave.signed)
 endif ()
 
 add_custom_target(
   simulate
-  DEPENDS teehe_host sign
-  COMMAND teehe_host ${CMAKE_BINARY_DIR}/enclave/enclave.signed --simulate)
+  DEPENDS fosdsc_host sign
+  COMMAND fosdsc_host ${CMAKE_BINARY_DIR}/enclave/enclave.signed --simulate)

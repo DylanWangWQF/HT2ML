@@ -1,8 +1,8 @@
 add_custom_command(
-  OUTPUT teehe_t.h teehe_t.c teehe_args.h
-  DEPENDS ${CMAKE_SOURCE_DIR}/teehe.edl
+  OUTPUT fosdsc_t.h fosdsc_t.c fosdsc_args.h
+  DEPENDS ${CMAKE_SOURCE_DIR}/fosdsc.edl
   COMMAND
-    openenclave::oeedger8r --trusted ${CMAKE_SOURCE_DIR}/teehe.edl
+    openenclave::oeedger8r --trusted ${CMAKE_SOURCE_DIR}/fosdsc.edl
     --search-path ${OE_INCLUDEDIR} --search-path
     ${OE_INCLUDEDIR}/openenclave/edl/sgx)
 
@@ -16,7 +16,7 @@ add_custom_command(
   COMMAND apkman exec clang++ -std=c++17 -fPIE -g -c -I${CMAKE_CURRENT_SOURCE_DIR}/include -I/opt/openenclave/include ${CMAKE_CURRENT_SOURCE_DIR}/dispatcher.cpp
 )
 
-add_executable(enclave ecalls.cpp dispatcher.o stubs.c ${CMAKE_CURRENT_BINARY_DIR}/teehe_t.c)
+add_executable(enclave ecalls.cpp dispatcher.o stubs.c ${CMAKE_CURRENT_BINARY_DIR}/fosdsc_t.c)
 
 
 if (WIN32)

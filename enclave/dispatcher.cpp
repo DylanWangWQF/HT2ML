@@ -1,12 +1,16 @@
 #include <string.h>
-#include <NTL/RR.h>
+#include <NTL/matrix.h>
 #include <vector>
 #include <chrono>
 
 #include "dispatcher.h"
 #include "trace.h"
 
-ecall_dispatcher::ecall_dispatcher() {}
+//HTparams* params
+ecall_dispatcher::ecall_dispatcher()
+{
+    // e_HTparams = params;
+}
 
 int ecall_dispatcher::enclave_init(uint8_t* hecontext, size_t context_len)
 {
@@ -18,18 +22,18 @@ int ecall_dispatcher::enclave_init(uint8_t* hecontext, size_t context_len)
     //     goto exit;
     // }
     auto start= chrono::steady_clock::now();
-    TRACE_ENCLAVE("Enclave: receive the HE context and keys");
+
+    TRACE_ENCLAVE("Enclave: receive the HE params");
     stringstream ess;
     string e_hecontext = string(hecontext, hecontext + context_len);
+    // cout << "Enclave: check hecontext: " << hecontext << endl;
+    // cout << "Enclave: check context_len, containing context, sk and pk: " << context_len << endl;
     ess << e_hecontext;
-    TRACE_ENCLAVE("Enclave: reconstruct the context: ");
+    TRACE_ENCLAVE("Enclave: readfrom the string and reconstruct the context: ");
     e_context = Context::readPtrFrom(ess);
-    e_context->printout();
-
-    TRACE_ENCLAVE("Enclave: reconstruct the SecKey!");
+    TRACE_ENCLAVE("Enclave: Setup Seckey by reading from ss!");
     activeSecKey = make_unique<SecKey>(SecKey::readFrom(ess, *e_context));
-
-    TRACE_ENCLAVE("Enclave: reconstruct the PubKey!");
+    TRACE_ENCLAVE("Enclave: Setup PubKey by reading from ss!");
     activePubKey = make_unique<PubKey>(PubKey::readFrom(ess, *e_context));
 
     auto end = std::chrono::steady_clock::now();
@@ -50,7 +54,7 @@ int ecall_dispatcher::multipleCtxtsTransform(uint8_t* ectxt, size_t ectxt_len, s
     stringstream css;
     vector<Ctxt> ReceivedCtxts(num_ectxt, Ctxt(*activePubKey));
 
-    TRACE_ENCLAVE("Enclave: Receiving Ctxt start!");
+    // TRACE_ENCLAVE("Enclave: Receiving Ctxt start!");
     string etemp = string(ectxt, ectxt + ectxt_len);
     css << etemp;
     for (size_t i = 0; i < num_ectxt; ++i)
@@ -61,7 +65,7 @@ int ecall_dispatcher::multipleCtxtsTransform(uint8_t* ectxt, size_t ectxt_len, s
 
     css.str(std::string());
     css.clear();
-    TRACE_ENCLAVE("Enclave: Transforming Ctxt start!");
+    // TRACE_ENCLAVE("Enclave: Transforming Ctxt start!");
     for (size_t i = 0; i < num_ectxt; ++i)
     {
         ReceivedCtxts[i].writeTo(css);
@@ -80,7 +84,7 @@ int ecall_dispatcher::singleCtxtTransform(uint8_t* ectxt, size_t ectxt_len, uint
     stringstream css;
     Ctxt ReceivedCtxts(*activePubKey);
 
-    TRACE_ENCLAVE("Enclave: Receiving Ctxt start!");
+    // TRACE_ENCLAVE("Enclave: Receiving Ctxt start!");
     string etemp = string(ectxt, ectxt + ectxt_len);
     css << etemp;
     ReceivedCtxts.Ctxt::read(css);
@@ -88,7 +92,7 @@ int ecall_dispatcher::singleCtxtTransform(uint8_t* ectxt, size_t ectxt_len, uint
 
     css.str(std::string());
     css.clear();
-    TRACE_ENCLAVE("Enclave: Transforming Ctxt start!");
+    // TRACE_ENCLAVE("Enclave: Transforming Ctxt start!");
     ReceivedCtxts.writeTo(css);
 
     string otemp = css.str();
@@ -106,6 +110,7 @@ void ecall_dispatcher::RefreshRmat(Ctxt& ctxt)
     PtxtArray pa1(*e_context);
     pa1.decryptComplex(ctxt, *activeSecKey);
     pa1.store(cmsg);
+
     PtxtArray pa2(*e_context, cmsg);
     pa2.encrypt(ctxt);
     return;
@@ -116,7 +121,5 @@ void ecall_dispatcher::close()
     TRACE_ENCLAVE("Enclave: release context and HTparams!");
     // release context and keys
     delete e_context;
-    // activePubKey.reset();
-    // activeSecKey.reset();
     TRACE_ENCLAVE("ecall_dispatcher::close");
 }

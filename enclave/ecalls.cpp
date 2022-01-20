@@ -1,6 +1,6 @@
 #include <openenclave/enclave.h>
 #include <cstdio>
-#include "teehe_t.h"
+#include "fosdsc_t.h"
 #include "dispatcher.h"
 
 static ecall_dispatcher dispatcher;

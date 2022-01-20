@@ -3,6 +3,8 @@
 #include <cstring>
 #include <sstream>
 #include <math.h>
+#include <unordered_map>
+#include <map>
 #include <helib/helib.h>
 #include <openenclave/enclave.h>
 
@@ -20,7 +22,9 @@ class ecall_dispatcher
     // HE public key
     unique_ptr<PubKey> activePubKey;
 
+
   public:
+    // ecall_dispatcher(HTparams* params);
     ecall_dispatcher();
     int enclave_init(uint8_t* hecontext, size_t context_len);
     int multipleCtxtsTransform(uint8_t* ectxt, size_t ectxt_len, size_t num_ectxt, uint8_t** octxt, size_t* octxt_len);

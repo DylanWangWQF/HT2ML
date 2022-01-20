@@ -46,7 +46,7 @@ int RefreshSingleCtxt(Ctxt& resCtxt, uint64_t& totalLength)
     ectxt = (uint8_t*) HostCtxtTemp.c_str();
     totalLength += ectxt_len;
 
-    // cout << "Host: send/receive Ctxt to/from enclave:" << endl;
+    cout << "Host: send/receive Ctxt to/from enclave:" << endl;
     result = singleCtxtTransform(enclave, &ret, ectxt, ectxt_len, &octxt, &octxt_len);
     if (result != OE_OK){
         cerr << "Host: transform HE ciphertext failed. result = " << result << endl;
@@ -98,7 +98,7 @@ int RefreshMultipleCtxts(vector<Ctxt>& resCtxt, uint64_t& totalLength, ckksMeta&
     ectxt = (uint8_t*) HostCtxtTemp.c_str();
     totalLength += ectxt_len;
 
-    // cout << "Host: send/receive Ctxt to/from enclave:" << endl;
+    cout << "Host: send/receive Ctxt to/from enclave:" << endl;
     result = multipleCtxtsTransform(enclave, &ret, ectxt, ectxt_len, num_ectxt, &octxt, &octxt_len);
     if (result != OE_OK){
         cerr << "Host: transform HE ciphertext failed. result = " << result << endl;
@@ -122,6 +122,9 @@ int RefreshMultipleCtxts(vector<Ctxt>& resCtxt, uint64_t& totalLength, ckksMeta&
         resCtxt[i].Ctxt::read(css);
     }
     totalLength += octxt_len;
+    cout << "after resCtxt.capacity=" << resCtxt[0].capacity() << " ";
+    cout << "after resCtxt.isCorrect=" << resCtxt[0].isCorrect() << " ";
+    cout << "after resCtxt.errorBound=" << resCtxt[0].errorBound() << "\n";
 
 exit:
     cout << "Host: free memory for ectxt and octxt!" << endl;
@@ -174,7 +177,7 @@ int main(int argc, const char * argv[]) {
     /*---------------------------------------*/
     //  Setup
     /*---------------------------------------*/
-    SetNumThreads(4);
+    SetNumThreads(16);
     // Setup the encalve params
     oe_result_t result;
     int ret = 0;
@@ -184,8 +187,7 @@ int main(int argc, const char * argv[]) {
     ckksMatpar ckksmatpar;
     long ncols = 64, nrows = 64, subdim = 16;
     readckksMatpar(ckksmatpar, nrows, ncols, subdim); // subdim used in below RecMul
-    // ckksParams param(/*m=*/16 * 1024, /*bits=*/179, /*precision=*/20, /*c=*/2);
-    ckksParams param(/*m=*/16 * 1024, /*bits=*/235, /*precision=*/20, /*c=*/4);
+    ckksParams param(/*m=*/16 * 1024, /*bits=*/179, /*precision=*/20, /*c=*/2);
     ckksMeta meta;
     meta(param);
     cout << "HE Context contents: " << endl;
@@ -210,11 +212,6 @@ int main(int argc, const char * argv[]) {
     vector<EncodedPtxt> Initpoly;
     Ctxt inference_result(meta.data->publicKey);
 
-    // record the communication cost and run time
-    auto start= std::chrono::steady_clock::now();
-    auto end = std::chrono::steady_clock::now();
-    auto diff = end - start;
-    double timeElapsed = 0.0;
     uint64_t totalLength = 0;
 
     /*---------------------------------------*/
@@ -295,7 +292,6 @@ int main(int argc, const char * argv[]) {
     /*---------------------------------------*/
     //  Homomorphically perform CNN inference
     /*---------------------------------------*/
-    start= chrono::steady_clock::now();
     // 1. HE conv layer, ct.I_{i, j} and ct.K_{i, j}_{k}
     cout << endl << "Inference-convolution layer..." << endl;
     for (int k = 0; k < num_channels; k++) // 4
@@ -318,13 +314,21 @@ int main(int argc, const char * argv[]) {
         ct_Ck[k].bumpNoiseBound(1e-5);
     }
 
+    cout << "ct_Ck.capacity=" << ct_Ck[0].capacity() << " ";
+    cout << "ct_Ck.isCorrect=" << ct_Ck[0].isCorrect() << " ";
+    cout << "ct_Ck.errorBound=" << ct_Ck[0].errorBound() << "\n";
+
     // Todo: set a if() statement to check if invoking refreshCtxts()
-    // ret = RefreshMultipleCtxts(ct_Ck, totalLength, meta);
-    // if (ret != 0)
-    // {
-    //     cerr << "Host: RefreshMultipleCtxts failed with " << ret << endl;
-    //     goto exit;
-    // }
+    ret = RefreshMultipleCtxts(ct_Ck, totalLength, meta);
+    if (ret != 0)
+    {
+        cerr << "Host: RefreshMultipleCtxts failed with " << ret << endl;
+        goto exit;
+    }
+
+    cout << "after ct_Ck.capacity=" << ct_Ck[0].capacity() << " ";
+    cout << "after ct_Ck.isCorrect=" << ct_Ck[0].isCorrect() << " ";
+    cout << "after ct_Ck.errorBound=" << ct_Ck[0].errorBound() << "\n";
 
     // 3. HE FC-1 layer, 64 * 256 X 256 * 64 = 64 * 64, ct.W_{k} and ct_C_{k}
     cout << endl << "Inference-FC-1 layer..." << endl;
@@ -335,6 +339,10 @@ int main(int argc, const char * argv[]) {
         ct_F += temp;
     }
 
+    cout << "ct_F.capacity=" << ct_F.capacity() << " ";
+    cout << "ct_F.isCorrect=" << ct_F.isCorrect() << " ";
+    cout << "ct_F.errorBound=" << ct_F.errorBound() << "\n";
+
     ret = RefreshSingleCtxt(ct_F, totalLength);
     if (ret != 0)
     {
@@ -342,21 +350,26 @@ int main(int argc, const char * argv[]) {
         goto exit;
     }
 
+    cout << "after ct_F.capacity=" << ct_F.capacity() << " ";
+    cout << "after ct_F.isCorrect=" << ct_F.isCorrect() << " ";
+    cout << "after ct_F.errorBound=" << ct_F.errorBound() << "\n";
+
     // 4. HE square layer
     cout << endl << "Inference-square2 layer..." << endl;
     ct_F.square();
 
+    cout << "ct_F.capacity=" << ct_F.capacity() << " ";
+    cout << "ct_F.isCorrect=" << ct_F.isCorrect() << " ";
+    cout << "ct_F.errorBound=" << ct_F.errorBound() << "\n";
+
     // 5. HE FC-2 layer, 10 * 64 X 64 * 64 = 10 * 64, ct.V and ct_F
     cout << endl << "Inference-FC-2 layer..." << endl;
     CKKSmatrix.HErmatmul_preprocessing(inference_result, ct_V, ct_F, Initpoly);
-    inference_result.bumpNoiseBound(1e-7);
+    ct_Ck[k].bumpNoiseBound(1e-7);
 
-    end = std::chrono::steady_clock::now();
-    diff = end - start;
-    timeElapsed = chrono::duration <double, milli> (diff).count()/1000.0;
-    cout << "------------------------------------------------------------------------" << endl;
-    cout << "Host: Inference Time= " << timeElapsed << " s" << endl;
-    cout << "------------------------------------------------------------------------" << endl;
+    cout << "inference_result.capacity=" << inference_result.capacity() << " ";
+    cout << "inference_result.isCorrect=" << inference_result.isCorrect() << " ";
+    cout << "inference_result.errorBound=" << inference_result.errorBound() << "\n";
 
 exit:
     cout << "Host: called close_encryptor" << endl;
