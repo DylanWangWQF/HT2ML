@@ -15,16 +15,6 @@ int nonLinearLayer(uint8_t* ectxt, size_t ectxt_len, size_t num_ectxt, uint8_t**
 	return dispatcher.nonLinearLayer(ectxt, ectxt_len, num_ectxt, octxt, octxt_len);
 }
 
-int multipleCtxtsTransform(uint8_t* ectxt, size_t ectxt_len, size_t num_ectxt, uint8_t** octxt, size_t* octxt_len)
-{
-	return dispatcher.multipleCtxtsTransform(ectxt, ectxt_len, num_ectxt, octxt, octxt_len);
-}
-
-int singleCtxtTransform(uint8_t* ectxt, size_t ectxt_len, uint8_t** octxt, size_t* octxt_len)
-{
-	return dispatcher.singleCtxtTransform(ectxt, ectxt_len, octxt, octxt_len);
-}
-
 void close_encryptor()
 {
     return dispatcher.close();

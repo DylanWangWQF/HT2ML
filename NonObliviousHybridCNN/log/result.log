@@ -1,0 +1,23 @@
+security level = 85.2658
+Host: create enclave for image:/home/dylan/mysamples/TEE-HE-PPML/NonObliviousHybridCNN/build/enclave/enclave.signed
+Host: check size of context and keys: 161.385 MB
+Host: transform HE params (context, sk and pk) into enclave:
+------------------------------------------------------------------------
+Enclave: Total Setup Time for HE inside enclave = 6.598 s
+------------------------------------------------------------------------
+Enclave: /home/dylan/mysamples/TEE-HE-PPML/NonObliviousHybridCNN/enclave/dispatcher.cpp(47): Enclave: free memory in enclave_init()!
+Encrypting the images (feaMat, size = 7 * 7)...
+------------------------------------------------------------------------
+Host: Client Encryption Time = 3.88332 s
+Host: Client Communication Cost = : 84.4385 MB
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+Host: Server Encryption Time = 3.51029 s
+Host: Server Communication Cost = : 140.356 MB
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+Enclave: Non Linear Layer Runtime inside enclave = 19.786 s
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+Host: Inference Time= 95.556 s
+------------------------------------------------------------------------

@@ -26,11 +26,8 @@ class ecall_dispatcher
     ecall_dispatcher();
     int enclave_init(uint8_t* hecontext, size_t context_len);
     int nonLinearLayer(uint8_t* ectxt, size_t ectxt_len, size_t num_ectxt, uint8_t** octxt, size_t* octxt_len);
-    int multipleCtxtsTransform(uint8_t* ectxt, size_t ectxt_len, size_t num_ectxt, uint8_t** octxt, size_t* octxt_len);
-    int singleCtxtTransform(uint8_t* ectxt, size_t ectxt_len, uint8_t** octxt, size_t* octxt_len);
     void close();
   private:
-    void RefreshRmat(Ctxt& ctxt);
     double sigmoid(double x);
     void ProcessNonLinear(vector<vector<double>>& pooling_output, Ctxt& ctxt);
 };
