@@ -40,11 +40,11 @@ bool LoadData(Mat<long> &rawData, vector<long> &labels, long &dim, string &filen
 void BatchData(vector<vector<vector<long>>> &ptxtData, vector<vector<long>> &ptxtLabels, const Mat<long> &rawData, const vector<long> &labels, long p, long nslots) {
     ptxtData.clear();
     ptxtLabels.clear();
-    for (long i = 0; i < rawData.NumRows(); i += nslots)
+    for (long i = 0; i < rawData.NumRows(); i += nslots) // number of data
     {
         vector<vector<long>> row;
         vector<long> curLabel;
-        for (long j = 0; j < rawData.NumCols(); j++)
+        for (long j = 0; j < rawData.NumCols(); j++) // dimension
         {
             vector<long> columnBatch;
             for (long k = i; ((k < i + nslots) && (k < rawData.NumRows())); k++)
@@ -94,25 +94,21 @@ void Regression::EncryptData(const vector<vector<vector<long>>> &ptxtData, const
 //}
 
 void Regression::Regress(vector<Ctxt> &theta, Ctxt &det){
-//    vector<vector<Ctxt>> dataCopy = data;
-//    vector<Ctxt> labelsCopy = labels;
-//    dataCopy.Transpose();
-
-    //    Matrix<Ciphertext> last = dataCopy*labels;
-    //    dataCopy.MultByTranspose();
-    vector<vector<Ctxt>> last; //
-    cout << endl << "MultiplyVector!" << endl;
+    //---------------------------------
+    //           X^T * y
+    //---------------------------------
+    vector<vector<Ctxt>> last;
+    // cout << endl << "Multiply Vector!" << endl;
     MultiplyVector(last, data, labels, true, false);
-    cout << endl << "totalSums for [last]!" << endl;
+    // cout << endl << "totalSums for [last]!" << endl;
     for (unsigned i = 0; i < last.size(); i++) {
         for (unsigned j = 0; j < last[0].size(); j++) {
             totalSums(last[i][j]);
         }
     }
     
-    
-    // Check the result of data * labels
-    cout << endl << "The result of data * labels for enc version!" << endl;
+    // Print and check the result of data * labels
+    cout << endl << "1. The result of data * labels for enc version!" << endl;
     for (int i = 0; i < last.size(); i++) {
         for (int j = 0; j < last[0].size(); j++) {
             vector<long> temp_dec;
@@ -123,10 +119,13 @@ void Regression::Regress(vector<Ctxt> &theta, Ctxt &det){
     }
     cout << endl;
     
+    //---------------------------------
+    //           X^T * X
+    //---------------------------------
     vector<vector<Ctxt>> res_MultByTrans;
-    cout << endl << "MultByTranspose!" << endl;
+    // cout << endl << "MultByTranspose!" << endl;
     MultByTranspose(res_MultByTrans, data, true);
-    cout << endl << "totalSums for [res_MultByTrans]!" << endl;
+    // cout << endl << "totalSums for [res_MultByTrans]!" << endl;
     for (unsigned i = 0; i < res_MultByTrans.size(); i++) {
         for (unsigned j = 0; j < res_MultByTrans[0].size(); j++) {
             totalSums(res_MultByTrans[i][j]);
@@ -134,7 +133,7 @@ void Regression::Regress(vector<Ctxt> &theta, Ctxt &det){
     }
     
     // Check the result of data^T * data
-    cout << endl << "The result of data^T * data for enc version!" << endl;
+    cout << endl << "2. The result of data^T * data for enc version!" << endl;
     for (int i = 0; i < res_MultByTrans.size(); i++) {
         for (int j = 0; j < res_MultByTrans[0].size(); j++) {
             vector<long> temp_dec;
@@ -152,11 +151,14 @@ void Regression::Regress(vector<Ctxt> &theta, Ctxt &det){
         return;
     }
 
+    //---------------------------------
+    //         (X^T * X)^(-1)
+    //---------------------------------
     vector<vector<Ctxt>> adj;
-    cout << endl << "Invert!" << endl;
+    // cout << endl << "Invert!" << endl;
     Invert(det, adj, res_MultByTrans, false);
     // Check the result of data^T * data
-    cout << endl << "The result of Invert(data^T * data） for enc version!" << endl;
+    cout << endl << "3. The result of Invert(data^T * data） for enc version!" << endl;
     for (int i = 0; i < adj.size(); i++) {
         for (int j = 0; j < adj[0].size(); j++) {
             vector<long> temp_dec;
@@ -168,18 +170,20 @@ void Regression::Regress(vector<Ctxt> &theta, Ctxt &det){
     cout << endl;
     
 
-//    dataCopy *= last;
+    //---------------------------------
+    //  [(X^T * X)^(-1)] * [X^T * y]
+    //---------------------------------
     vector<vector<Ctxt>> final_result;
-    cout << endl << "MultiplyMatrix!" << endl;
+    // cout << endl << "MultiplyMatrix!" << endl;
     MultiplyMatrix(final_result, adj, last, false, false);
 
-    cout << endl << "Assign result to theta!" << endl;
+    // cout << endl << "Assign result to theta!" << endl;
     long final_res_cols = final_result.size();
-//    theta.resize(final_res_cols, Ctxt(meta.data->publicKey));
-//    for (unsigned i = 0; i < final_res_cols; i++)
-//    {
-//        theta[i] = final_result[i][0];
-//    }
+    // theta.resize(final_res_cols, Ctxt(meta.data->publicKey));
+    // for (unsigned i = 0; i < final_res_cols; i++)
+    // {
+    //     theta[i] = final_result[i][0];
+    // }
     for (unsigned i = 0; i < final_res_cols; i++)
     {
         theta.push_back(final_result[i][0]);
@@ -187,7 +191,6 @@ void Regression::Regress(vector<Ctxt> &theta, Ctxt &det){
 }
 
 void RegressPT(vector<long> &theta, long &det, Mat<long> &data, vector<long> &labels){
-    
     PtMatrix<long> A;
     for (long i = 0; i < data.NumRows(); i++) {
         vector<long> tempData;
@@ -201,7 +204,7 @@ void RegressPT(vector<long> &theta, long &det, Mat<long> &data, vector<long> &la
     PtMatrix<long> tmp = A * labels;
     
     // Check the result of A * labels
-    cout << endl << "The result of A * labels!" << endl;
+    cout << endl << "1. The result of A * labels!" << endl;
     for (int i = 0; i < tmp.NumRows(); i++) {
         for (int j = 0; j < tmp.NumCols(); j++) {
             cout << tmp(i,j) << " ";
@@ -211,7 +214,7 @@ void RegressPT(vector<long> &theta, long &det, Mat<long> &data, vector<long> &la
     cout << endl;
 
     A.MultByTranspose();
-    cout << endl << "The result of A^T * A!" << endl;
+    cout << endl << "2. The result of A^T * A!" << endl;
     for (int i = 0; i < A.NumRows(); i++) {
         for (int j = 0; j < A.NumCols(); j++) {
             cout << A(i,j) << " ";
@@ -228,7 +231,7 @@ void RegressPT(vector<long> &theta, long &det, Mat<long> &data, vector<long> &la
     }
 
     A.Invert(det);
-    cout << endl << "The result of Invert(A)!" << endl;
+    cout << endl << "3. The result of Invert(A)!" << endl;
     for (int i = 0; i < A.NumRows(); i++) {
         for (int j = 0; j < A.NumCols(); j++) {
             cout << A(i,j) << " ";
@@ -280,6 +283,7 @@ void Regression::MultiplyMatrix(vector<vector<Ctxt>> &output, vector<vector<Ctxt
     }
 }
 
+// Functionlaity of Matrix * Vector
 void Regression::MultiplyVector(vector<vector<Ctxt>> &output, vector<vector<Ctxt>> &input1, vector<Ctxt> &input2, bool isTranspose1, bool isTranspose2){
     long row1 = isTranspose1 ? input1[0].size() : input1.size();
     long col1 = isTranspose1 ? input1.size() : input1[0].size();

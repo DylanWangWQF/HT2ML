@@ -10,7 +10,7 @@
 
 #include "PtMatrix.h"
 #include "PtMatrix.cpp"
-#include "../src/helib/helib.h"
+#include <helib/helib.h>
 
 #include <NTL/ZZ.h>
 #include <NTL/mat_ZZ.h>
@@ -79,6 +79,7 @@ struct LR_ContextAndKeys
         publicKey((secretKey.GenSecKey(),
                    addSome1DMatrices(secretKey),
                    addFrbMatrices(secretKey),
+                   secretKey.genRecryptData(),
                    secretKey)),
         ea(context.getEA()){}
 };
