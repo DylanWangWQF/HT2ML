@@ -59,5 +59,6 @@
         "thread": "cpp",
         "typeinfo": "cpp",
         "list": "cpp"
-    }
+    },
+    "cmake.configureOnOpen": false
 }

@@ -58,16 +58,9 @@ int ecall_dispatcher::MatrixOperation(uint8_t* ectxt, size_t ectxt_len, uint8_t*
     string etemp = string(ectxt, ectxt + ectxt_len);
     css << etemp;
     vector<long> cmsg1;
-    int*** HostMatrix = new int**[2];
+    int HostMatrix[2][MatrixDim][MatrixDim];
     for (int k = 0; k < 2; k++)
     {
-        // initialize matrix using int*** format
-        HostMatrix[k] = new int*[MatrixDim];
-        for (int l = 0; l < MatrixDim; l++)
-        {
-            HostMatrix[k][l] = new int[MatrixDim];
-        }
-
         // read two ctxts from string buffer
         cmsg1.clear();
         Ctxt ctemp(*activePubKey);
@@ -85,18 +78,15 @@ int ecall_dispatcher::MatrixOperation(uint8_t* ectxt, size_t ectxt_len, uint8_t*
     }
 
     // HostMatrix[0] for inverse
-    int** inverse_result = new int[MatrixDim];
-    for (int l = 0; l < MatrixDim; l++)
+    int inverse_result[MatrixDim][MatrixDim];
+    if (!inverse(HostMatrix[0], inverse_result))
     {
-        inverse_result[l] = new int[MatrixDim];
+        cout << "Can't find its inverse" << endl;  
     }
 
     // multiply the inverse by HostMatrix[1]
-    int** final_result = new int[MatrixDim];
-    for (int l = 0; l < MatrixDim; l++)
-    {
-        final_result[l] = new int[MatrixDim];
-    }
+    int final_result[MatrixDim][MatrixDim];
+    mul(inverse_result, HostMatrix[1], final_result);
 
     // send enclaveCtxt to server
     // TRACE_ENCLAVE("Enclave: Transforming Ctxt start!");
@@ -128,99 +118,136 @@ int ecall_dispatcher::MatrixOperation(uint8_t* ectxt, size_t ectxt_len, uint8_t*
     return 0;
 }
 
-void ecall_dispatcher::close()
-{
-    TRACE_ENCLAVE("Enclave: release context and HTparams!");
-    // release context and keys
-    delete e_context;
-    TRACE_ENCLAVE("ecall_dispatcher::close");
+// Function to get cofactor of A[p][q] in temp[][]. n is current dimension of A[][]
+void ecall_dispatcher::getCofactor(int A[MatrixDim][MatrixDim], int temp[MatrixDim][MatrixDim], int p, int q, int n){
+    int i = 0, j = 0;
+
+	// Looping for each element of the matrix
+	for (int row = 0; row < n; row++)
+	{
+		for (int col = 0; col < n; col++)
+		{
+			// Copying into temporary matrix only those element which are not in given row and column
+			if (row != p && col != q)
+			{
+				temp[i][j++] = A[row][col];
+
+				// Row is filled, so increase row index and reset col index
+				if (j == n - 1)
+				{
+					j = 0;
+					i++;
+				}
+			}
+		}
+	}
 }
 
-int** ecall_dispatcher::matMul(int** A, int** B){
-    int** C = new int*[MatrixDim];
-    for(int i=0 ; i < MatrixDim; i++) C[i] = new int[MatrixDim];
+// Recursive function for finding determinant of matrix n is current dimension of A[][].
+int ecall_dispatcher::determinant(int A[MatrixDim][MatrixDim], int n){
+    int D = 0; // Initialize result
 
+	// Base case : if matrix contains single element
+	if (n == 1)
+		return A[0][0];
+
+	int temp[MatrixDim][MatrixDim]; // To store cofactors
+
+	int sign = 1; // To store sign multiplier
+
+	// Iterate for each element of first row
+	for (int f = 0; f < n; f++)
+	{
+		// Getting Cofactor of A[0][f]
+		getCofactor(A, temp, 0, f, n);
+		D += sign * A[0][f] * determinant(temp, n - 1);
+
+		// terms are to be added with alternate sign
+		sign = -sign;
+	}
+
+	return D;
+}
+
+// Function to get adjoint of A[MatrixDim][MatrixDim] in adj[MatrixDim][MatrixDim].
+void ecall_dispatcher::adjoint(int A[MatrixDim][MatrixDim],int adj[MatrixDim][MatrixDim])
+{
+	if (MatrixDim == 1)
+	{
+		adj[0][0] = 1;
+		return;
+	}
+
+	// temp is used to store cofactors of A[][]
+	int sign = 1, temp[MatrixDim][MatrixDim];
+
+	for (int i=0; i<MatrixDim; i++)
+	{
+		for (int j=0; j<MatrixDim; j++)
+		{
+			// Get cofactor of A[i][j]
+			getCofactor(A, temp, i, j, MatrixDim);
+
+			// sign of adj[j][i] positive if sum of row and column indexes is even.
+			sign = ((i+j)%2==0)? 1: -1;
+
+			// Interchanging rows and columns to get the transpose of the cofactor matrix
+			adj[j][i] = (sign)*(determinant(temp, MatrixDim-1));
+		}
+	}
+}
+
+// Function to calculate and store inverse, returns false if matrix is singular
+bool ecall_dispatcher::inverse(int A[MatrixDim][MatrixDim], int inverse[MatrixDim][MatrixDim])
+{
+	// Find determinant of A[][]
+	int det = determinant(A, MatrixDim);
+	if (det == 0)
+	{
+		cout << "Singular matrix, can't find its inverse";
+		return false;
+	}
+
+	// Find adjoint
+	int adj[MatrixDim][MatrixDim];
+	adjoint(A, adj);
+
+	// Find Inverse using formula "inverse(A) = adj(A)/det(A)"
+	for (int i=0; i<MatrixDim; i++)
+		for (int j=0; j<MatrixDim; j++)
+			inverse[i][j] = adj[i][j]/det;
+
+	return true;
+}
+
+void ecall_dispatcher::display(int A[MatrixDim][MatrixDim])
+{
+	for (int i = 0; i < MatrixDim; i++)
+	{
+		for (int j = 0; j < MatrixDim; j++)
+			cout << A[i][j] << " ";
+		cout << endl;
+	}
+}
+
+void ecall_dispatcher::mul(int A[MatrixDim][MatrixDim], int B[MatrixDim][MatrixDim], int C[MatrixDim][MatrixDim])
+{
     for(int i = 0; i < MatrixDim; i++)
     {
         for(int j = 0; j < MatrixDim; j++)
         {
             for(int k = 0; k < MatrixDim; k++)
             {
-                C[i * MatrixDim + j] += A[ i * MatrixDim + k] * B[k * MatrixDim + j];
+                C[i * MatrixDim+j] += A[i * MatrixDim + k] * B[k * MatrixDim + j];
             }
         }
     }
-    return C;
 }
 
-void ecall_dispatcher::LUP_Descomposition(int**& A, int**& L, int**& U, int*& P){
-    int row = 0;
-    for(int i = 0; i < MatrixDim; i++)
-    {
-        P[i] = i;
-    }
-    for(int i = 0; i < (MatrixDim - 1); i++)
-    {
-        int p = 0;
-        for(int j = i; j < MatrixDim; j++)
-        {
-            if(abs(A[j][i]) > p)
-            {
-                p = abs(A[j][i]);
-                row = j;
-            }
-        }
-        if(0 == p)
-        {
-            cout<< "Unable to calculate matrix inverse due to singular matrix" <<endl;
-            return;
-        }
-
-        // exchange P[i] and P[row]
-        int tmp = P[i];
-        P[i]  = P[row];
-        P[row] = tmp;
-
-        int tmp2 = 0;
-        for(int j = 0; j < MatrixDim; j++)
-        {
-            // exchange A[i][j] and A[row][j]
-            tmp2 =A[i][j];
-            A[i][j] = A[row][j];
-            A[row][j] = tmp2;
-        }
-
-        // LUP_Descomposition 
-        int u = A[i][i], l = 0;
-        for(int j = i + 1; j < MatrixDim; j++)
-        {
-            l = A[j*N+i]/u;
-            A[j*N+i]=l;
-            for(int k=i+1;k<N;k++)
-            {
-                A[j*N+k]=A[j*N+k]-A[i*N+k]*l;
-            }
-        }
-
-    }
-
-    //构造L和U
-    for(int i=0;i<N;i++)
-    {
-        for(int j=0;j<=i;j++)
-        {
-            if(i!=j)
-            {
-                L[i*N+j]=A[i*N+j];
-            }
-            else
-            {
-                L[i*N+j]=1;
-            }
-        }
-        for(int k=i;k<N;k++)
-        {
-            U[i*N+k]=A[i*N+k];
-        }
-    }
+void ecall_dispatcher::close()
+{
+    TRACE_ENCLAVE("Enclave: release context and HTparams!");
+    // release context and keys
+    delete e_context;
+    TRACE_ENCLAVE("ecall_dispatcher::close");
 }

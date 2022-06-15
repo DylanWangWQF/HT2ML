@@ -30,6 +30,10 @@ class ecall_dispatcher
     int MatrixOperation(uint8_t* ectxt, size_t ectxt_len, uint8_t** octxt, size_t* octxt_len);
     void close();
   private:
-    int** matMul(int** A, int** B);
-    void LUP_Descomposition(int**& A, int**& L, int**& U, int*& P);
+    void getCofactor(int A[MatrixDim][MatrixDim], int temp[MatrixDim][MatrixDim], int p, int q, int n);
+    int determinant(int A[MatrixDim][MatrixDim], int n);
+    void adjoint(int A[MatrixDim][MatrixDim],int adj[MatrixDim][MatrixDim]);
+    bool inverse(int A[MatrixDim][MatrixDim], int inverse[MatrixDim][MatrixDim]);
+    void display(int A[MatrixDim][MatrixDim]);
+    void mul(int A[MatrixDim][MatrixDim], int B[MatrixDim][MatrixDim], int C[MatrixDim][MatrixDim]);
 };
