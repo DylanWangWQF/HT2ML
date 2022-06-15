@@ -14,7 +14,7 @@ else:
         nFiles = int(sys.argv[4])
 
 MIN = 0
-MAX = 5
+MAX = 2
 
 valuesPerFile = int(math.ceil(float(N) / nFiles))
 

@@ -32,8 +32,7 @@ bool LoadData(Mat<long> &rawData, vector<long> &labels, long &dim, string &filen
         }
         fin >> label;
         labels.push_back(label);
-    }
-  
+    }  
     return true;
 }
 

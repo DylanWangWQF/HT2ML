@@ -1,0 +1,19 @@
+enclave {
+    from "openenclave/edl/syscall.edl" import *;
+    from "platform.edl" import *;
+
+    trusted {
+        public int enclave_init(
+                        [in, count=context_len] uint8_t* hecontext,
+                        size_t context_len);
+        public int MatrixOperation(
+                        [in, count=ectxt_len] uint8_t* ectxt, 
+                        size_t ectxt_len,
+                        [out] uint8_t** octxt, 
+                        [out] size_t* octxt_len);
+        public void close_encryptor();
+    };
+
+    // untrusted {
+    // };
+};
