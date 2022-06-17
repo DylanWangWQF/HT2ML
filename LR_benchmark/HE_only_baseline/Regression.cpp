@@ -107,16 +107,16 @@ void Regression::Regress(vector<Ctxt> &theta, Ctxt &det){
     }
     
     // Print and check the result of data * labels
-    cout << endl << "1. The result of data * labels for enc version!" << endl;
-    for (int i = 0; i < last.size(); i++) {
-        for (int j = 0; j < last[0].size(); j++) {
-            vector<long> temp_dec;
-            meta.data->ea.decrypt(last[i][j], meta.data->secretKey, temp_dec);
-            cout << temp_dec[0] << " ";
-        }
-        cout << endl;
-    }
-    cout << endl;
+    // cout << endl << "1. The result of data * labels for enc version!" << endl;
+    // for (int i = 0; i < last.size(); i++) {
+    //     for (int j = 0; j < last[0].size(); j++) {
+    //         vector<long> temp_dec;
+    //         meta.data->ea.decrypt(last[i][j], meta.data->secretKey, temp_dec);
+    //         cout << temp_dec[0] << " ";
+    //     }
+    //     cout << endl;
+    // }
+    // cout << endl;
     
     //---------------------------------
     //           X^T * X
@@ -132,16 +132,21 @@ void Regression::Regress(vector<Ctxt> &theta, Ctxt &det){
     }
     
     // Check the result of data^T * data
-    cout << endl << "2. The result of data^T * data for enc version!" << endl;
-    for (int i = 0; i < res_MultByTrans.size(); i++) {
-        for (int j = 0; j < res_MultByTrans[0].size(); j++) {
-            vector<long> temp_dec;
-            meta.data->ea.decrypt(res_MultByTrans[i][j], meta.data->secretKey, temp_dec);
-            cout << temp_dec[0] << " ";
-        }
-        cout << endl;
-    }
-    cout << endl;
+    // cout << endl << "2. The result of data^T * data for enc version!" << endl;
+    // for (int i = 0; i < res_MultByTrans.size(); i++) {
+    //     for (int j = 0; j < res_MultByTrans[0].size(); j++) {
+    //         vector<long> temp_dec;
+    //         meta.data->ea.decrypt(res_MultByTrans[i][j], meta.data->secretKey, temp_dec);
+    //         cout << temp_dec[0] << " ";
+    //     }
+    //     cout << endl;
+    // }
+    // cout << endl;
+
+    //---------------------------------
+    //         (X^T * X)^(-1)
+    //---------------------------------
+    auto inverse_start= chrono::steady_clock::now();
 
     long numCols = data[0].size();
     if (numCols == 1) {
@@ -150,23 +155,27 @@ void Regression::Regress(vector<Ctxt> &theta, Ctxt &det){
         return;
     }
 
-    //---------------------------------
-    //         (X^T * X)^(-1)
-    //---------------------------------
     vector<vector<Ctxt>> adj;
-    // cout << endl << "Invert!" << endl;
     Invert(det, adj, res_MultByTrans, false);
+
+    auto inverse_end = std::chrono::steady_clock::now();
+    auto inverse_diff = inverse_end - inverse_start;
+    auto inverse_timeElapsed = chrono::duration <double, milli> (inverse_diff).count()/1000.0;
+    cout << "------------------------------------------------------------------------" << endl;
+    cout << "Matrix Inverse under Encryption Time = " << inverse_timeElapsed << " s" << endl;
+    cout << "------------------------------------------------------------------------" << endl;
+  
     // Check the result of data^T * data
-    cout << endl << "3. The result of Invert(data^T * data） for enc version!" << endl;
-    for (int i = 0; i < adj.size(); i++) {
-        for (int j = 0; j < adj[0].size(); j++) {
-            vector<long> temp_dec;
-            meta.data->ea.decrypt(adj[i][j], meta.data->secretKey, temp_dec);
-            cout << temp_dec[0] << " ";
-        }
-        cout << endl;
-    }
-    cout << endl;
+    // cout << endl << "3. The result of Invert(data^T * data） for enc version!" << endl;
+    // for (int i = 0; i < adj.size(); i++) {
+    //     for (int j = 0; j < adj[0].size(); j++) {
+    //         vector<long> temp_dec;
+    //         meta.data->ea.decrypt(adj[i][j], meta.data->secretKey, temp_dec);
+    //         cout << temp_dec[0] << " ";
+    //     }
+    //     cout << endl;
+    // }
+    // cout << endl;
     
 
     //---------------------------------

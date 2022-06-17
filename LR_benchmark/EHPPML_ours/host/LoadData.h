@@ -19,6 +19,6 @@ using namespace NTL;
 // Initialize Mat with 0
 void MatInit(Mat<long>& matInit);
 // Process raw Dataset, sub Mat with dimension
-void ProcessDataMatrix(Mat<long>*& Amat, Mat<long>*& ATranmat, Mat<long>*& Bmat, long& numMat, long &MatrixDim, string &filename);
+void ProcessDataMatrix(Mat<long>*& Amat, Mat<long>*& ATranmat, Mat<long>*& Bmat, long& numMat, long& MatrixDim, string &filename);
 
 #endif /* LoadData_h */

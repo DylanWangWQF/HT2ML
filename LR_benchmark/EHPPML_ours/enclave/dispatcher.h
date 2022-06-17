@@ -6,6 +6,13 @@
 #include <helib/helib.h>
 #include <openenclave/enclave.h>
 
+#define MatrixDim 16
+// #define numAttr 2
+// #define numAttr 4
+// #define numAttr 6
+// #define numAttr 8
+#define numAttr 16
+
 using namespace std;
 using namespace helib;
 using namespace NTL;
@@ -20,7 +27,9 @@ class ecall_dispatcher
     // HE public key
     unique_ptr<PubKey> activePubKey;
 
-    long MatrixDim = 16;
+    //int MatrixDim = 16;
+    // This param should be passed to enclave. Here, for simplicity, we just hard-coded it.
+    // int numAttr = 6;
 
 
   public:
@@ -30,10 +39,10 @@ class ecall_dispatcher
     int MatrixOperation(uint8_t* ectxt, size_t ectxt_len, uint8_t** octxt, size_t* octxt_len);
     void close();
   private:
-    void getCofactor(int A[MatrixDim][MatrixDim], int temp[MatrixDim][MatrixDim], int p, int q, int n);
-    int determinant(int A[MatrixDim][MatrixDim], int n);
-    void adjoint(int A[MatrixDim][MatrixDim],int adj[MatrixDim][MatrixDim]);
-    bool inverse(int A[MatrixDim][MatrixDim], int inverse[MatrixDim][MatrixDim]);
-    void display(int A[MatrixDim][MatrixDim]);
-    void mul(int A[MatrixDim][MatrixDim], int B[MatrixDim][MatrixDim], int C[MatrixDim][MatrixDim]);
+    void getCofactor(int A[numAttr][numAttr], int temp[numAttr][numAttr], int p, int q, int n);
+    int determinant(int A[numAttr][numAttr], int n);
+    void adjoint(int A[numAttr][numAttr],int adj[numAttr][numAttr]);
+    bool inverse(int A[numAttr][numAttr], int inverse[numAttr][numAttr]);
+    // void display(int A[MatrixDim][MatrixDim]);
+    // void mul(int A[MatrixDim][MatrixDim], int B[MatrixDim][MatrixDim], int C[MatrixDim][MatrixDim]);
 };

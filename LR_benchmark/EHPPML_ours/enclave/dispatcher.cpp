@@ -6,6 +6,7 @@
 #include "dispatcher.h"
 #include "trace.h"
 
+
 //HTparams* params
 ecall_dispatcher::ecall_dispatcher()
 {
@@ -44,17 +45,17 @@ int ecall_dispatcher::enclave_init(uint8_t* hecontext, size_t context_len)
     cout << "------------------------------------------------------------------------" << endl;
 
 exit:
-    TRACE_ENCLAVE("Enclave: free memory in enclave_init()!");
+    // TRACE_ENCLAVE("Enclave: free memory in enclave_init()!");
     e_hecontext.shrink_to_fit();
     return ret;
 }
 
 int ecall_dispatcher::MatrixOperation(uint8_t* ectxt, size_t ectxt_len, uint8_t** octxt, size_t* octxt_len)
 {
-    auto start= chrono::steady_clock::now();
+    // TRACE_ENCLAVE("Enclave: Receive Ctxt and calculate matrix inverse!");
     stringstream css;
+    auto start= chrono::steady_clock::now();
 
-    // TRACE_ENCLAVE("Enclave: Receiving Ctxt start!");
     string etemp = string(ectxt, ectxt + ectxt_len);
     css << etemp;
     vector<long> cmsg1;
@@ -77,25 +78,62 @@ int ecall_dispatcher::MatrixOperation(uint8_t* ectxt, size_t ectxt_len, uint8_t*
         }
     }
 
+
+    // Crop the matrices by removing zeros
+    // TRACE_ENCLAVE("Enclave: Crop the matrices!");
+    int RealMatrix1[numAttr][numAttr]; // 6 * 6
+    int RealMatrix2[numAttr][1];  // 6 * 1
+    for (int i = 0; i < numAttr; i++)
+    {
+        for (int j = 0; j < numAttr; j++)
+        {
+            RealMatrix1[i][j] = HostMatrix[0][i][j];
+            if (j == 0)
+            {
+                RealMatrix2[i][j] = HostMatrix[1][i][j];
+            }
+            
+        }
+    }
+
+    // cout << endl << "Check the to-be-inversed matrix..." << endl;
+    // for (int i = 0; i < numAttr; ++i){
+    //     for (int j = 0; j < numAttr; ++j){
+    //         cout << RealMatrix1[i][j] << " ";
+    //     }
+    //     cout << endl;
+    // }
+
     // HostMatrix[0] for inverse
-    int inverse_result[MatrixDim][MatrixDim];
-    if (!inverse(HostMatrix[0], inverse_result))
+    // TRACE_ENCLAVE("Enclave: calculate the inverse!");
+    int inverse_result[numAttr][numAttr];
+    if (!inverse(RealMatrix1, inverse_result))
     {
         cout << "Can't find its inverse" << endl;  
     }
 
     // multiply the inverse by HostMatrix[1]
-    int final_result[MatrixDim][MatrixDim];
-    mul(inverse_result, HostMatrix[1], final_result);
+    // TRACE_ENCLAVE("Enclave: multiply the inverse!");
+    int final_result[numAttr][1];
+    for(int i = 0; i < numAttr; i++)
+    {
+        for(int j = 0; j < 1; j++)
+        {
+            for(int k = 0; k < numAttr; k++)
+            {
+                final_result[i][j] += inverse_result[i][k] * RealMatrix2[k][j];
+            }
+        }
+    }
 
     // send enclaveCtxt to server
     // TRACE_ENCLAVE("Enclave: Transforming Ctxt start!");
-    vector<long> cmsg2(MatrixDim * MatrixDim);
-    for(int i = 0; i < MatrixDim; ++i){
-        for(int j = 0; j < MatrixDim; ++j){
-            cmsg2[i * MatrixDim + j] = final_result[i][j];
-        }
-    }
+    vector<long> cmsg2(MatrixDim * MatrixDim, 0);
+    // for(int i = 0; i < MatrixDim; ++i){
+    //     for(int j = 0; j < MatrixDim; ++j){
+    //         cmsg2[i * MatrixDim + j] = final_result[i][j];
+    //     }
+    // }
     Ctxt ctemp(*activePubKey);
     e_context->getEA().encrypt(ctemp, *activePubKey, cmsg2);
 
@@ -119,7 +157,7 @@ int ecall_dispatcher::MatrixOperation(uint8_t* ectxt, size_t ectxt_len, uint8_t*
 }
 
 // Function to get cofactor of A[p][q] in temp[][]. n is current dimension of A[][]
-void ecall_dispatcher::getCofactor(int A[MatrixDim][MatrixDim], int temp[MatrixDim][MatrixDim], int p, int q, int n){
+void ecall_dispatcher::getCofactor(int A[numAttr][numAttr], int temp[numAttr][numAttr], int p, int q, int n){
     int i = 0, j = 0;
 
 	// Looping for each element of the matrix
@@ -144,14 +182,14 @@ void ecall_dispatcher::getCofactor(int A[MatrixDim][MatrixDim], int temp[MatrixD
 }
 
 // Recursive function for finding determinant of matrix n is current dimension of A[][].
-int ecall_dispatcher::determinant(int A[MatrixDim][MatrixDim], int n){
+int ecall_dispatcher::determinant(int A[numAttr][numAttr], int n){
     int D = 0; // Initialize result
 
 	// Base case : if matrix contains single element
 	if (n == 1)
 		return A[0][0];
 
-	int temp[MatrixDim][MatrixDim]; // To store cofactors
+	int temp[numAttr][numAttr]; // To store cofactors
 
 	int sign = 1; // To store sign multiplier
 
@@ -169,39 +207,39 @@ int ecall_dispatcher::determinant(int A[MatrixDim][MatrixDim], int n){
 	return D;
 }
 
-// Function to get adjoint of A[MatrixDim][MatrixDim] in adj[MatrixDim][MatrixDim].
-void ecall_dispatcher::adjoint(int A[MatrixDim][MatrixDim],int adj[MatrixDim][MatrixDim])
+// Function to get adjoint of A[numAttr][numAttr] in adj[numAttr][numAttr].
+void ecall_dispatcher::adjoint(int A[numAttr][numAttr],int adj[numAttr][numAttr])
 {
-	if (MatrixDim == 1)
+	if (numAttr == 1)
 	{
 		adj[0][0] = 1;
 		return;
 	}
 
 	// temp is used to store cofactors of A[][]
-	int sign = 1, temp[MatrixDim][MatrixDim];
+	int sign = 1, temp[numAttr][numAttr];
 
-	for (int i=0; i<MatrixDim; i++)
+	for (int i=0; i<numAttr; i++)
 	{
-		for (int j=0; j<MatrixDim; j++)
+		for (int j=0; j<numAttr; j++)
 		{
 			// Get cofactor of A[i][j]
-			getCofactor(A, temp, i, j, MatrixDim);
+			getCofactor(A, temp, i, j, numAttr);
 
 			// sign of adj[j][i] positive if sum of row and column indexes is even.
 			sign = ((i+j)%2==0)? 1: -1;
 
 			// Interchanging rows and columns to get the transpose of the cofactor matrix
-			adj[j][i] = (sign)*(determinant(temp, MatrixDim-1));
+			adj[j][i] = (sign)*(determinant(temp, numAttr-1));
 		}
 	}
 }
 
 // Function to calculate and store inverse, returns false if matrix is singular
-bool ecall_dispatcher::inverse(int A[MatrixDim][MatrixDim], int inverse[MatrixDim][MatrixDim])
+bool ecall_dispatcher::inverse(int A[numAttr][numAttr], int inverse[numAttr][numAttr])
 {
 	// Find determinant of A[][]
-	int det = determinant(A, MatrixDim);
+	int det = determinant(A, numAttr);
 	if (det == 0)
 	{
 		cout << "Singular matrix, can't find its inverse";
@@ -209,40 +247,40 @@ bool ecall_dispatcher::inverse(int A[MatrixDim][MatrixDim], int inverse[MatrixDi
 	}
 
 	// Find adjoint
-	int adj[MatrixDim][MatrixDim];
+	int adj[numAttr][numAttr];
 	adjoint(A, adj);
 
 	// Find Inverse using formula "inverse(A) = adj(A)/det(A)"
-	for (int i=0; i<MatrixDim; i++)
-		for (int j=0; j<MatrixDim; j++)
+	for (int i=0; i<numAttr; i++)
+		for (int j=0; j<numAttr; j++)
 			inverse[i][j] = adj[i][j]/det;
 
 	return true;
 }
 
-void ecall_dispatcher::display(int A[MatrixDim][MatrixDim])
-{
-	for (int i = 0; i < MatrixDim; i++)
-	{
-		for (int j = 0; j < MatrixDim; j++)
-			cout << A[i][j] << " ";
-		cout << endl;
-	}
-}
+// void ecall_dispatcher::display(int A[MatrixDim][MatrixDim])
+// {
+// 	for (int i = 0; i < MatrixDim; i++)
+// 	{
+// 		for (int j = 0; j < MatrixDim; j++)
+// 			cout << A[i][j] << " ";
+// 		cout << endl;
+// 	}
+// }
 
-void ecall_dispatcher::mul(int A[MatrixDim][MatrixDim], int B[MatrixDim][MatrixDim], int C[MatrixDim][MatrixDim])
-{
-    for(int i = 0; i < MatrixDim; i++)
-    {
-        for(int j = 0; j < MatrixDim; j++)
-        {
-            for(int k = 0; k < MatrixDim; k++)
-            {
-                C[i * MatrixDim+j] += A[i * MatrixDim + k] * B[k * MatrixDim + j];
-            }
-        }
-    }
-}
+// void ecall_dispatcher::mul(int A[MatrixDim][MatrixDim], int B[MatrixDim][MatrixDim], int C[MatrixDim][MatrixDim])
+// {
+//     for(int i = 0; i < MatrixDim; i++)
+//     {
+//         for(int j = 0; j < MatrixDim; j++)
+//         {
+//             for(int k = 0; k < MatrixDim; k++)
+//             {
+//                 C[i][j] += A[i][k] * B[k][j];
+//             }
+//         }
+//     }
+// }
 
 void ecall_dispatcher::close()
 {

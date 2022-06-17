@@ -9,7 +9,7 @@ add_custom_command(
 set(CMAKE_CXX_FLAGS "-g -O3 -pthread")
 
 add_executable(fosdsc_host
-               host.cpp LoadData.cpp CKKSmatrix.cpp ${CMAKE_CURRENT_SOURCE_DIR}/data/DatasetOperations.cpp ${CMAKE_CURRENT_BINARY_DIR}/fosdsc_u.c)
+               host.cpp LoadData.cpp hematrix.cpp ${CMAKE_CURRENT_BINARY_DIR}/fosdsc_u.c)
 
 if (WIN32)
   copy_oedebugrt_target(fosdsc_host_oedebugrt)

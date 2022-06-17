@@ -31,7 +31,7 @@
 //     return true;
 // }
 
-void ProcessDataMatrix(Mat<long>*& Amat, Mat<long>*& ATranmat, Mat<long>*& Bmat, long& numMat, long &MatrixDim, string &filename){
+void ProcessDataMatrix(Mat<long>*& Amat, Mat<long>*& ATranmat, Mat<long>*& Bmat, long& numMat, long& MatrixDim, string& filename){
     ifstream fin;
     fin.open(filename);
     if (!fin) {
@@ -64,7 +64,7 @@ void ProcessDataMatrix(Mat<long>*& Amat, Mat<long>*& ATranmat, Mat<long>*& Bmat,
     if (rawData.NumRows() % nrows != 0)
     {
         numMat = rawData.NumRows()/nrows + 1;
-        cout << "Number of SubMatrix: " << numMat << endl;
+        // cout << "Number of SubMatrix: " << numMat << endl;
         Amat = new Mat<long>[numMat];
         Bmat = new Mat<long>[numMat];
 
@@ -118,6 +118,7 @@ void ProcessDataMatrix(Mat<long>*& Amat, Mat<long>*& ATranmat, Mat<long>*& Bmat,
     }
 
     // get the transpose of data sample matrix
+    ATranmat = new Mat<long>[numMat];
     NTL_EXEC_RANGE(numMat, first, last);
     for(long k = first; k < last; ++k){
         ATranmat[k].SetDims(nrows, ncols);

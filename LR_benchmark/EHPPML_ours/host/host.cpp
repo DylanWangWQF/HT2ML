@@ -84,7 +84,11 @@ int main(int argc, const char * argv[]) {
     Mat<long>* TranDataMat;
     Mat<long>* LabelMat;
     long num_DataMat;
-    string dataset = "../../scripts/6_dim_LR.dat";
+    // string dataset = "../../scripts/2_dim_LR.dat";
+    // string dataset = "../../scripts/4_dim_LR.dat";
+    // string dataset = "../../scripts/6_dim_LR.dat";
+    // string dataset = "../../scripts/8_dim_LR.dat";
+    string dataset = "../../scripts/16_dim_LR.dat";
     ProcessDataMatrix(DataMat, TranDataMat, LabelMat, num_DataMat, nrows, dataset);
 
     /*---------------------------------------*/
@@ -201,8 +205,8 @@ int main(int argc, const char * argv[]) {
         HEmatrix.encryptZmat(EncDataMat[i], DataMat[i]);
         HEmatrix.encryptZmat(EncLabelMat[i], LabelMat[i]);
         HEmatrix.genInitActxt(Actxts, TranDataMat[i]);
-        EncTranDataMat.push(Actxts);
-        EncTranDataMat_2nd.push(Actxts);
+        EncTranDataMat.push_back(Actxts);
+        EncTranDataMat_2nd.push_back(Actxts);
     }
 
     client_end = std::chrono::steady_clock::now();
@@ -230,9 +234,9 @@ int main(int argc, const char * argv[]) {
     /*---------------------------------------*/
     //  Homomorphically perform Linear Regression Training
     /*---------------------------------------*/
+    cout << endl << "TranDataMat * DataMat and Send/Receive ctxts to/from the enclave..." << endl;
     start= chrono::steady_clock::now();
     // 1. TranDataMat * DataMat
-    cout << endl << "TranDataMat * DataMat..." << endl;
     for (long k = 0; k < num_DataMat; k++)
     {
         HEmatrix.HEmatmul_preprocessing(EncResultMat1[k], EncTranDataMat[k], EncDataMat[k], Initpoly);
@@ -242,7 +246,7 @@ int main(int argc, const char * argv[]) {
     }
 
     // 2. Send/Receive ctxts to/from the enclave
-    cout << endl << "Send/Receive ctxts to/from the enclave..." << endl;
+    // cout << endl << "Send/Receive ctxts to/from the enclave..." << endl;
     CallEnclaveForMatrix(result1, result2, enclaveCtxt, meta, totalLength);
 
     end = std::chrono::steady_clock::now();
