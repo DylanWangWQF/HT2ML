@@ -7,11 +7,12 @@
 #include <openenclave/enclave.h>
 
 #define MatrixDim 16
+
 // #define numAttr 2
 // #define numAttr 4
-// #define numAttr 6
+#define numAttr 6
 // #define numAttr 8
-#define numAttr 16
+// #define numAttr 16
 
 using namespace std;
 using namespace helib;

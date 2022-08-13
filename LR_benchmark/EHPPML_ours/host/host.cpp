@@ -86,9 +86,9 @@ int main(int argc, const char * argv[]) {
     long num_DataMat;
     // string dataset = "../../scripts/2_dim_LR.dat";
     // string dataset = "../../scripts/4_dim_LR.dat";
-    // string dataset = "../../scripts/6_dim_LR.dat";
+    string dataset = "../../scripts/6_dim_LR.dat";
     // string dataset = "../../scripts/8_dim_LR.dat";
-    string dataset = "../../scripts/16_dim_LR.dat";
+    // string dataset = "../../scripts/16_dim_LR.dat";
     ProcessDataMatrix(DataMat, TranDataMat, LabelMat, num_DataMat, nrows, dataset);
 
     /*---------------------------------------*/
@@ -140,6 +140,10 @@ int main(int argc, const char * argv[]) {
     auto end = std::chrono::steady_clock::now();
     auto diff = end - start;
     double timeElapsed = 0.0;
+    
+    auto host_end = std::chrono::steady_clock::now();
+    auto host_diff = host_end - start;
+    double host_timeElapsed = 0.0;
 
     auto client_start= std::chrono::steady_clock::now();
     auto client_end = std::chrono::steady_clock::now();
@@ -234,7 +238,7 @@ int main(int argc, const char * argv[]) {
     /*---------------------------------------*/
     //  Homomorphically perform Linear Regression Training
     /*---------------------------------------*/
-    cout << endl << "TranDataMat * DataMat and Send/Receive ctxts to/from the enclave..." << endl;
+    // cout << endl << "TranDataMat * DataMat and Send/Receive ctxts to/from the enclave..." << endl;
     start= chrono::steady_clock::now();
     // 1. TranDataMat * DataMat
     for (long k = 0; k < num_DataMat; k++)
@@ -244,16 +248,26 @@ int main(int argc, const char * argv[]) {
         HEmatrix.HEmatmul_preprocessing(EncResultMat2[k], EncTranDataMat_2nd[k], EncLabelMat[k], Initpoly);
         result2 += EncResultMat2[k];
     }
+    host_end = std::chrono::steady_clock::now();
 
     // 2. Send/Receive ctxts to/from the enclave
     // cout << endl << "Send/Receive ctxts to/from the enclave..." << endl;
     CallEnclaveForMatrix(result1, result2, enclaveCtxt, meta, totalLength);
 
+    // Calculate host runtime
+    host_diff = host_end - start;
+    host_timeElapsed = chrono::duration <double, milli> (host_diff).count()/1000.0;
+
+    // Calculate total runtime
     end = std::chrono::steady_clock::now();
     diff = end - start;
     timeElapsed = chrono::duration <double, milli> (diff).count()/1000.0;
+
+    cout << "------------------------------------------------------------------------" << endl;
+    cout << "Host: RunTime in Host = " << host_timeElapsed << " s" << endl;
     cout << "------------------------------------------------------------------------" << endl;
     cout << "Host: LR Training Time= " << timeElapsed << " s" << endl;
+    cout << "------------------------------------------------------------------------" << endl;
     cout << "Host: Communication Cost between Server and Enclave = : " << ((double) totalLength / (double)(1024 * 1024)) << " MB" << endl;
     cout << "------------------------------------------------------------------------" << endl;
 

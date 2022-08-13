@@ -1,0 +1,11 @@
+enclave {
+    from "openenclave/edl/syscall.edl" import *;
+    from "platform.edl" import *;
+
+    trusted {
+        public int MatInv();
+    };
+
+    // untrusted {
+    // };
+};

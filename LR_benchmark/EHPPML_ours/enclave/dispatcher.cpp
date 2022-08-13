@@ -96,21 +96,20 @@ int ecall_dispatcher::MatrixOperation(uint8_t* ectxt, size_t ectxt_len, uint8_t*
         }
     }
 
-    // cout << endl << "Check the to-be-inversed matrix..." << endl;
-    // for (int i = 0; i < numAttr; ++i){
-    //     for (int j = 0; j < numAttr; ++j){
-    //         cout << RealMatrix1[i][j] << " ";
-    //     }
-    //     cout << endl;
-    // }
-
     // HostMatrix[0] for inverse
     // TRACE_ENCLAVE("Enclave: calculate the inverse!");
+    auto inverse_start= chrono::steady_clock::now();
     int inverse_result[numAttr][numAttr];
+    
     if (!inverse(RealMatrix1, inverse_result))
     {
         cout << "Can't find its inverse" << endl;  
     }
+
+    auto inverse_end= chrono::steady_clock::now();
+    auto inverse_diff = inverse_end - inverse_start;
+    // double inverse_timeElapsed = chrono::duration <double, micro> (inverse_diff).count();
+    double inverse_timeElapsed = chrono::duration <double, nano> (inverse_diff).count();
 
     // multiply the inverse by HostMatrix[1]
     // TRACE_ENCLAVE("Enclave: multiply the inverse!");
@@ -150,7 +149,9 @@ int ecall_dispatcher::MatrixOperation(uint8_t* ectxt, size_t ectxt_len, uint8_t*
     auto diff = end - start;
     double timeElapsed = chrono::duration <double, milli> (diff).count()/1000.0;
     cout << "------------------------------------------------------------------------" << endl;
-    cout << "Enclave: Matrix Inverse Runtime inside enclave = " << timeElapsed << " s" << endl;
+    cout << "Enclave: Matrix inverse runtime inside enclave = " << inverse_timeElapsed << " ns" << endl;
+    cout << "------------------------------------------------------------------------" << endl;
+    cout << "Enclave: Runtime inside enclave = " << timeElapsed << " s" << endl;
     cout << "------------------------------------------------------------------------" << endl;
 
     return 0;
@@ -251,7 +252,7 @@ bool ecall_dispatcher::inverse(int A[numAttr][numAttr], int inverse[numAttr][num
 	adjoint(A, adj);
 
 	// Find Inverse using formula "inverse(A) = adj(A)/det(A)"
-	for (int i=0; i<numAttr; i++)
+	for (int i=0; i < numAttr; i++)
 		for (int j=0; j<numAttr; j++)
 			inverse[i][j] = adj[i][j]/det;
 

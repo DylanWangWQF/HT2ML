@@ -24,7 +24,8 @@ int main(int argc, const char * argv[]) {
     // string datafile = "/home/dylan/code/EHPPML/LR_benchmark/scripts/dataset.dat";
     // string datafile = "/home/dylan/code/EHPPML/LR_benchmark/scripts/2_dim_LR.dat";
     // string datafile = "/home/dylan/code/EHPPML/LR_benchmark/scripts/4_dim_LR.dat";
-    string datafile = "/home/dylan/code/EHPPML/LR_benchmark/scripts/6_dim_LR.dat";
+    // string datafile = "/home/dylan/code/EHPPML/LR_benchmark/scripts/6_dim_LR.dat";
+    string datafile = "/home/dylan/code/EHPPML/LR_benchmark/scripts/16_dim_LR.dat";
     
     if (!LoadData(rawData, labels, dim, datafile))
         return 0;
