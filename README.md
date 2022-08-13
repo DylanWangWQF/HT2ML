@@ -1,4 +1,4 @@
-# TEE-HE-PPML
+# HETEE
 
 ## Linear Regression benchmark
 - ***ours*** vs HE only baseline
