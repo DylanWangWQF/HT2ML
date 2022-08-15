@@ -1,5 +1,14 @@
 # HETEE
 
+- [HETEE](#hetee)
+  - [Introduction](#introduction)
+    - [Dependencies](#dependencies)
+    - [PPML Examples](#ppml-examples)
+  - [Installation](#installation)
+    - [Install Microsoft Open Enclave (OE) SDK](#install-microsoft-open-enclave-oe-sdk)
+    - [Install HE library HElib](#install-he-library-helib)
+  - [Run HETEE](#run-hetee)
+
 ## Introduction
 
 **An Efficient Hybrid Framework for Privacy-preserving Machine Learning Using HE and TEE**
