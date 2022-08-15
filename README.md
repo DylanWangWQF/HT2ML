@@ -1,12 +1,14 @@
 # HETEE
 
+## Table of Contents
 - [HETEE](#hetee)
+  - [Table of Contents](#table-of-contents)
   - [Introduction](#introduction)
     - [Dependencies](#dependencies)
     - [PPML Examples](#ppml-examples)
   - [Installation](#installation)
     - [Install Microsoft Open Enclave (OE) SDK](#install-microsoft-open-enclave-oe-sdk)
-    - [Install HE library HElib](#install-he-library-helib)
+    - [Install HElib](#install-helib)
   - [Run HETEE](#run-hetee)
 
 ## Introduction
@@ -52,7 +54,7 @@ After confirming SGX support levels, install OE according to the corresponding [
 
 Note that HETEE is tested on Ubuntu 18.04 with SGX1+FLC mode. In SGX1+FLC mode, the Open Enclave SDK takes advantage of the Flexible Launch Control mode for better managing architectural enclaves.
 
-### Install HE library HElib
+### Install HElib
 
 HETEE performs HE-friendly computations (e.g., matrix/vector multiplications) in the host while performing HE-unfriednly computations (e.g., calculate non-linear functions or refresh the HE ciphertexts) inside the enclave. Therefore, we need to build the required libraries [NTL](https://github.com/libntl/ntl) and [GMP](https://gmplib.org/) against GLIBC (host) and MUSL (enclave) C library, respectively. 
 

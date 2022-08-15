@@ -2,6 +2,7 @@
 
 #--------------------------------------------------------------------------------
 # Download GMP, NTL and HElib
+# copy this script to each directory or change the path in this script
 
 # GMP gmp-6.2.1/ 
 # Note: gmp-6.2.1 is installed in apkman
