@@ -25,7 +25,7 @@ HETEE runs with three dependencies:
   - The implementations of the [Brakerski-Gentry-Vaikuntanathan (BGV)](https://eprint.iacr.org/2011/277) scheme with bootstrapping.
   - The Approximate Number scheme of [Cheon-Kim-Kim-Song (CKKS)](https://eprint.iacr.org/2016/421).
 - [Open Enclave SDK](https://github.com/openenclave/openenclave): a hardware-agnostic open source library for developing applications that utilize Hardware-based Trusted Execution Environments (a.k.a, Enclaves). Open Enclave (OE) is an SDK for building enclave applications in C and C++. An enclave application partitions itself into two components: untrusted component (*host*) and trusted component (*enclave*).
-- [HEMat](https://github.com/K-miran/HEMat): a software package for performing a secure outsourced matrix computation using HE. HEMat is implemented based on the HE library [HEAAN](https://eprint.iacr.org/2016/421.pdf). It is described in more detail in the [CCS2018](https://dl.acm.org/doi/10.1145/3243734.3243837) paper. **Note**: to support both integer-based and rational number-based HE matrix computations, HETEE re-implement HEMat with HElib based on BGV and CKKS schemes.
+- [HEMat](https://github.com/K-miran/HEMat): a software package for performing a secure outsourced matrix computation using HE. HEMat is implemented based on the HE library [HEAAN](https://eprint.iacr.org/2016/421.pdf). It is described in more detail in the [CCS2018](https://dl.acm.org/doi/10.1145/3243734.3243837) paper. **Note**: to support both integer-based and rational number-based HE matrix computations, HETEE re-implements HEMat with HElib based on BGV and CKKS schemes.
 
 ### PPML Examples
 
@@ -34,7 +34,7 @@ In this implementation, HETEE provides two examples: linear regression and convo
 **Linear Regression**
 - *HETEE* vs HE only baseline
 
-To explore the performance gains of processing integer-based task that HETEE achieves, we compare HETEE with HE only baseline. HE only baseline is an implementation of linear regression with the protection of only HE. We re-implement Wu et al's work [SI-HE](https://github.com/dwu4/fhe-si) with the latest version of HE and set it as HE only baseline.
+To explore the performance gains of processing integer-based task that HETEE achieves, we compare HETEE with HE only baseline. HE only baseline is an implementation of linear regression with the protection of only HE. We re-implement Wu et al's work [SI-HE](https://github.com/dwu4/fhe-si) with the latest version of HElib and set it as HE only baseline.
 
 **CNN Inference**
 - *HETEE* vs HE only baseline (E2DM)
