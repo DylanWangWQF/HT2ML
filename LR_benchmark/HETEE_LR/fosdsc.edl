@@ -11,6 +11,11 @@ enclave {
                         size_t ectxt_len,
                         [out] uint8_t** octxt, 
                         [out] size_t* octxt_len);
+        public int RefreshCtxt(
+                        [in, count=ectxt_len] uint8_t* ectxt, 
+                        size_t ectxt_len,
+                        [out] uint8_t** octxt, 
+                        [out] size_t* octxt_len);
         public void close_encryptor();
     };
 
