@@ -15,6 +15,11 @@ int MatrixOperation(uint8_t* ectxt, size_t ectxt_len, uint8_t** octxt, size_t* o
 	return dispatcher.MatrixOperation(ectxt, ectxt_len, octxt, octxt_len);
 }
 
+int RefreshCtxt(uint8_t* ectxt, size_t ectxt_len, uint8_t** octxt, size_t* octxt_len)
+{
+	return dispatcher.RefreshCtxt(ectxt, ectxt_len, octxt, octxt_len);
+}
+
 void close_encryptor()
 {
     return dispatcher.close();

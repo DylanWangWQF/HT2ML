@@ -8,8 +8,8 @@
 
 #define MatrixDim 16
 
-#define numAttr 2
-// #define numAttr 4
+// #define numAttr 2
+#define numAttr 4
 // #define numAttr 6
 // #define numAttr 8
 // #define numAttr 16
@@ -38,6 +38,7 @@ class ecall_dispatcher
     ecall_dispatcher();
     int enclave_init(uint8_t* hecontext, size_t context_len);
     int MatrixOperation(uint8_t* ectxt, size_t ectxt_len, uint8_t** octxt, size_t* octxt_len);
+    int RefreshCtxt(uint8_t* ectxt, size_t ectxt_len, uint8_t** octxt, size_t* octxt_len);
     void close();
   private:
     void getCofactor(int A[numAttr][numAttr], int temp[numAttr][numAttr], int p, int q, int n);

@@ -157,6 +157,50 @@ int ecall_dispatcher::MatrixOperation(uint8_t* ectxt, size_t ectxt_len, uint8_t*
     return 0;
 }
 
+int ecall_dispatcher::RefreshCtxt(uint8_t* ectxt, size_t ectxt_len, uint8_t** octxt, size_t* octxt_len)
+{
+    // TRACE_ENCLAVE("Enclave: Receive Ctxt and calculate matrix inverse!");
+    stringstream css;
+    auto start= chrono::steady_clock::now();
+
+    string etemp = string(ectxt, ectxt + ectxt_len);
+    css << etemp;
+    vector<vector<long>> cmsg(2);
+    int HostMatrix[2][MatrixDim][MatrixDim];
+    for (int k = 0; k < 2; k++)
+    {
+        // read two ctxts from string buffer
+        Ctxt ctemp(*activePubKey);
+        ctemp.Ctxt::read(css);
+        e_context->getEA().decrypt(ctemp, *activeSecKey, cmsg[k]);
+    }
+
+    css.str(std::string());
+    css.clear();
+    for (int k = 0; k < 2; k++)
+    {
+        // read two ctxts from string buffer
+        Ctxt ctemp(*activePubKey);
+        e_context->getEA().encrypt(ctemp, *activePubKey, cmsg[k]);
+        ctemp.writeTo(css);
+    }
+
+    string otemp = css.str();
+    uint8_t* host_buf = (uint8_t*) oe_host_malloc(size_t(otemp.size() + 1));
+    memcpy(host_buf, (uint8_t*)otemp.c_str(), otemp.size() + 1);
+    *octxt = host_buf;
+    *octxt_len = otemp.size();
+
+    auto end = std::chrono::steady_clock::now();
+    auto diff = end - start;
+    double timeElapsed = chrono::duration <double, milli> (diff).count()/1000.0;
+    cout << "------------------------------------------------------------------------" << endl;
+    cout << "Enclave: Runtime of refreshing the ctxt inside enclave = " << timeElapsed << " s" << endl;
+    cout << "------------------------------------------------------------------------" << endl;
+
+    return 0;
+}
+
 // Function to get cofactor of A[p][q] in temp[][]. n is current dimension of A[][]
 void ecall_dispatcher::getCofactor(int A[numAttr][numAttr], int temp[numAttr][numAttr], int p, int q, int n){
     int i = 0, j = 0;

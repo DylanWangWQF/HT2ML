@@ -72,6 +72,55 @@ exit:
     return ret;
 }
 
+int CallEnclaveForRefreshCtxt(Ctxt& result1, Ctxt& result2, Meta& meta, uint64_t& totalLength)
+{
+    oe_result_t result;
+    int ret = 0;
+    stringstream css;
+
+    // ctxt from the host
+    string HostCtxtTemp = "";
+    size_t ectxt_len = 0;
+    uint8_t *ectxt = NULL;
+    // ctxt from the enclave
+    string EnclaveCtxtTemp = "";
+    uint8_t *octxt = NULL;
+    size_t octxt_len = 0;
+
+    result1.writeTo(css);
+    result2.writeTo(css);
+    HostCtxtTemp = css.str();
+    ectxt_len = HostCtxtTemp.length();
+    ectxt = (uint8_t*) HostCtxtTemp.c_str();
+    totalLength += ectxt_len;
+
+    // cout << "Host: send/receive Ctxt to/from enclave:" << endl;
+    result = RefreshCtxt(enclave, &ret, ectxt, ectxt_len, &octxt, &octxt_len);
+    if (result != OE_OK){
+        cerr << "Host: transform HE ciphertext failed. result = " << result << endl;
+        ret = 1;
+        goto exit;
+    }
+    if (ret != 0)
+    {
+        cerr << "Host: transform HE ciphertext failed. ret = " << ret << endl;
+        goto exit;
+    }
+
+    css.str(std::string());
+    css.clear();
+    EnclaveCtxtTemp = std::string(octxt, octxt + octxt_len);
+    css << EnclaveCtxtTemp;
+    result1.Ctxt::read(css);
+    result2.Ctxt::read(css);
+    totalLength += octxt_len;
+    
+exit:
+    // cout << "Host: free memory for ectxt and octxt!" << endl;
+    free(octxt);
+    return ret;
+}
+
 int main(int argc, const char * argv[]) {
     SetNumThreads(16);
     /*---------------------------------------*/
@@ -84,8 +133,8 @@ int main(int argc, const char * argv[]) {
     Mat<long>* TranDataMat;
     Mat<long>* LabelMat;
     long num_DataMat;
-    string dataset = "../../scripts/2_dim_LR.dat";
-    // string dataset = "../../scripts/4_dim_LR.dat";
+    // string dataset = "../../scripts/2_dim_LR.dat";
+    string dataset = "../../scripts/4_dim_LR.dat";
     // string dataset = "../../scripts/6_dim_LR.dat";
     // string dataset = "../../scripts/8_dim_LR.dat";
     // string dataset = "../../scripts/16_dim_LR.dat";
@@ -142,6 +191,7 @@ int main(int argc, const char * argv[]) {
     Ctxt enclaveCtxt(meta.data->publicKey);
 
     // record the communication cost and run time
+    // uint64_t refreshLength = 0;
     uint64_t totalLength = 0;
     string ClientTemp = "";
     uint64_t client_totalLength = 0;
@@ -212,7 +262,6 @@ int main(int argc, const char * argv[]) {
     // optimised-HE
     // HEmatrix.genMultBPoly(Initpoly);
 
-
     /*---------------------------------------*/
     //  Encrypt the matrix
     /*---------------------------------------*/
@@ -281,6 +330,10 @@ int main(int argc, const char * argv[]) {
         result1 += EncResultMat1[k];
         HEmatrix.HEmatmul(EncResultMat2[k], EncTranDataMatOrHE[k], EncLabelMat[k], Initpoly, shiftpoly);
         result2 += EncResultMat2[k];
+        if (result1.capacity() < 2 || result2.capacity() < 2)
+        {
+            CallEnclaveForRefreshCtxt(result1, result2, meta, totalLength);
+        }
         // cout << "Host: " << k <<"-th check the noise level, result1 = " << result1.capacity() << endl;
         // cout << "Host: " << k <<"-th check the noise level, result2 = " << result2.capacity() << endl;
     }
@@ -292,6 +345,8 @@ int main(int argc, const char * argv[]) {
     //     result1 += EncResultMat1[k];
     //     HEmatrix.HEmatmul_preprocessing(EncResultMat2[k], EncTranDataMat_2nd[k], EncLabelMat[k], Initpoly);
     //     result2 += EncResultMat2[k];
+    //     cout << "Host: " << k <<"-th check the noise level, result1 = " << result1.capacity() << endl;
+    //     cout << "Host: " << k <<"-th check the noise level, result2 = " << result2.capacity() << endl;
     // }
     host_end = std::chrono::steady_clock::now();
 
