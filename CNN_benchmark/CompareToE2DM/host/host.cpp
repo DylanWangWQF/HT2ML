@@ -297,7 +297,7 @@ int main(int argc, const char * argv[]) {
     /*---------------------------------------*/
     start= chrono::steady_clock::now();
     // 1. HE conv layer, ct.I_{i, j} and ct.K_{i, j}_{k}
-    cout << endl << "Inference-convolution layer..." << endl;
+    // cout << endl << "Inference-convolution layer..." << endl;
     for (int k = 0; k < num_channels; k++) // 4
     {
         for (int i = 0; i < num_kernels; i++) // 49
@@ -311,7 +311,7 @@ int main(int argc, const char * argv[]) {
     }
 
     // 2. HE square layer
-    cout << endl << "Inference-square1 layer..." << endl;
+    // cout << endl << "Inference-square1 layer..." << endl;
     for (int k = 0; k < num_channels; k++) // 4
     {
         ct_Ck[k].square();
@@ -327,7 +327,7 @@ int main(int argc, const char * argv[]) {
     // }
 
     // 3. HE FC-1 layer, 64 * 256 X 256 * 64 = 64 * 64, ct.W_{k} and ct_C_{k}
-    cout << endl << "Inference-FC-1 layer..." << endl;
+    // cout << endl << "Inference-FC-1 layer..." << endl;
     for (int k = 0; k < num_channels; k++) // 4
     {
         Ctxt temp(meta.data->publicKey);
@@ -343,11 +343,11 @@ int main(int argc, const char * argv[]) {
     }
 
     // 4. HE square layer
-    cout << endl << "Inference-square2 layer..." << endl;
+    // cout << endl << "Inference-square2 layer..." << endl;
     ct_F.square();
 
     // 5. HE FC-2 layer, 10 * 64 X 64 * 64 = 10 * 64, ct.V and ct_F
-    cout << endl << "Inference-FC-2 layer..." << endl;
+    // cout << endl << "Inference-FC-2 layer..." << endl;
     CKKSmatrix.HErmatmul_preprocessing(inference_result, ct_V, ct_F, Initpoly);
     inference_result.bumpNoiseBound(1e-7);
 
