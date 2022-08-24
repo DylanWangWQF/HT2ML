@@ -20,8 +20,7 @@
 #include <NTL/ZZX.h>
 #include <NTL/mat_ZZ.h>
 #include <NTL/vec_ZZ.h>
-
-#include "../src/helib/helib.h"
+#include <helib/helib.h>
 
 using namespace std;
 using namespace NTL;

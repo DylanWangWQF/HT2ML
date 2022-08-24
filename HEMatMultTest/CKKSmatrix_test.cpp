@@ -21,8 +21,8 @@
 #include "NTL/mat_RR.h"
 #include <NTL/BasicThreadPool.h>
 #include <NTL/mat_ZZ.h>
+#include <helib/helib.h>
 
-#include "../src/helib/helib.h"
 #include "CKKSmatrix.h"
 #include "CKKSmatrix_test.h"
 
@@ -32,7 +32,8 @@ using namespace NTL;
 using namespace chrono;
 
 void CKKSmatrixTest::testMult(long nrows){
-    ckksParams param(/*m=*/16 * 1024, /*bits=*/150, /*precision=*/20, /*c=*/2);
+    // ckksParams param(/*m=*/4 * 1024, /*bits=*/130, /*precision=*/20, /*c=*/4);
+    ckksParams param(/*m=*/16 * 1024, /*bits=*/179, /*precision=*/20, /*c=*/2);
     ckksMatpar ckksmatpar;
     long ncols = nrows;
     readckksMatpar(ckksmatpar, nrows, ncols);
@@ -51,7 +52,7 @@ void CKKSmatrixTest::testMult(long nrows){
     meta.data->context.printout();
     CKKSmatrix CKKSmatrix(ckksmatpar, meta);
     HELIB_NTIMER_STOP(ckksmatrix_test_setup);
-    printNamedTimer(cout, "ckksmatrix_test_setup");
+    // printNamedTimer(cout, "ckksmatrix_test_setup");
     
     /*---------------------------------------*/
     //  Generate a random matrix
@@ -70,17 +71,28 @@ void CKKSmatrixTest::testMult(long nrows){
     }
 //    cout << "Generated matrix Amat: " << endl << Amat << endl;
 //    cout << "Generated matrix Bmat: " << endl << Bmat << endl;
+
+    cout << endl;
     
     /*---------------------------------------*/
     //  Encryption
     /*---------------------------------------*/
-    HELIB_NTIMER_START(enc_ckksmatrix);
     Ctxt Actxt(meta.data->publicKey);
-    CKKSmatrix.encryptRmat(Actxt, Amat);
     Ctxt Bctxt(meta.data->publicKey);
+
+    HELIB_NTIMER_START(enc_testMul);
+    CKKSmatrix.encryptRmat(Actxt, Amat);
+    HELIB_NTIMER_STOP(enc_testMul);
+    printNamedTimer(cout, "enc_testMul");
+
     CKKSmatrix.encryptRmat(Bctxt, Bmat);
-    HELIB_NTIMER_STOP(enc_ckksmatrix);
-    printNamedTimer(cout, "enc_ckksmatrix");
+
+    stringstream ss;
+    Actxt.writeTo(ss);
+    string ClientTemp = ss.str();
+    uint64_t client_totalLength = ClientTemp.size();
+    
+    cout << "Ciphertext size = : " << ((double) client_totalLength / (double)(1024 * 1024)) << " MB" << endl;
     
     /*---------------------------------------*/
     //  GenPoly
@@ -89,25 +101,21 @@ void CKKSmatrixTest::testMult(long nrows){
     HELIB_NTIMER_START(GenMulPoly_testMul);
     CKKSmatrix.genMultPoly(Initpoly);
     HELIB_NTIMER_STOP(GenMulPoly_testMul);
-    printNamedTimer(cout, "GenMulPoly_testMul");
+    // printNamedTimer(cout, "GenMulPoly_testMul");
     
     vector<EncodedPtxt> shiftpoly;
     HELIB_NTIMER_START(GenShiftPoly_testMul);
     CKKSmatrix.genShiftPoly(shiftpoly);
     HELIB_NTIMER_STOP(GenShiftPoly_testMul);
-    printNamedTimer(cout, "GenShiftPoly_testMul");
+    // printNamedTimer(cout, "GenShiftPoly_testMul");
     
     /*---------------------------------------*/
     //  Mult
     /*---------------------------------------*/
-    
-    HELIB_NTIMER_START(Mul_testMul);
     Ctxt Cctxt(meta.data->publicKey);
-    cout << "Cctxt.capacity=" << Cctxt.capacity() << " ";
-    cout << "Cctxt.errorBound=" << Cctxt.errorBound() << "\n";
+
+    HELIB_NTIMER_START(Mul_testMul);
     CKKSmatrix.HEmatmul(Cctxt, Actxt, Bctxt, Initpoly, shiftpoly);
-    cout << "Cctxt.capacity=" << Cctxt.capacity() << " ";
-    cout << "Cctxt.errorBound=" << Cctxt.errorBound() << "\n";
     HELIB_NTIMER_STOP(Mul_testMul);
     printNamedTimer(cout, "Mul_testMul");
     
@@ -115,13 +123,16 @@ void CKKSmatrixTest::testMult(long nrows){
     //  Decryption
     /*---------------------------------------*/
     Mat<RR> CKKSresmat;
+    HELIB_NTIMER_START(Dec_testMul);
     CKKSmatrix.decryptRmat(CKKSresmat, Cctxt);
+    HELIB_NTIMER_STOP(Dec_testMul);
+    printNamedTimer(cout, "Dec_testMul");
     
     /*---------------------------------------*/
     //  Error
     /*---------------------------------------*/
-    Mat<RR> resmat;
-    mul(resmat, Amat, Bmat);
+    // Mat<RR> resmat;
+    // mul(resmat, Amat, Bmat);
     
 //    RR error = getError(resmat, CKKSresmat, nrows, ncols);
 //    cout << "Error (mul): " << error << endl;
@@ -251,7 +262,8 @@ void CKKSmatrixTest::testRMult(long nrows, long subdim){
 }
 
 void CKKSmatrixTest::testMult_preprocessing(long nrows){
-    ckksParams param(/*m=*/1024, /*bits=*/358, /*precision=*/20, /*c=*/2);
+    // ckksParams param(/*m=*/1024, /*bits=*/358, /*precision=*/20, /*c=*/2);
+    ckksParams param(/*m=*/16 * 1024, /*bits=*/179, /*precision=*/20, /*c=*/2);
     ckksMatpar ckksmatpar;
     long ncols = nrows;
     readckksMatpar(ckksmatpar, nrows, ncols);
@@ -270,7 +282,7 @@ void CKKSmatrixTest::testMult_preprocessing(long nrows){
     meta.data->context.printout();
     CKKSmatrix CKKSmatrix(ckksmatpar, meta);
     HELIB_NTIMER_STOP(ckksmatrix_test_setup);
-    printNamedTimer(cout, "ckksmatrix_test_setup");
+    // printNamedTimer(cout, "ckksmatrix_test_setup");
     
     /*---------------------------------------*/
     //  Generate a random matrix
@@ -287,19 +299,33 @@ void CKKSmatrixTest::testMult_preprocessing(long nrows){
             Bmat[i][j]= to_RR((((i * ncols + j ) %3 )/10.0));
         }
     }
-    cout << "Generated matrix Amat: " << endl << Amat << endl;
-    cout << "Generated matrix Bmat: " << endl << Bmat << endl;
+    // cout << "Generated matrix Amat: " << endl << Amat << endl;
+    // cout << "Generated matrix Bmat: " << endl << Bmat << endl;
     
+    cout << endl;
+
     /*---------------------------------------*/
     //  Encryption
     /*---------------------------------------*/
-    HELIB_NTIMER_START(enc_ckksmatrix);
     vector<Ctxt> Actxts;
-    CKKSmatrix.genInitActxt(Actxts, Amat);
     Ctxt Bctxt(meta.data->publicKey);
+
+    HELIB_NTIMER_START(enc_testPreMul);
+    CKKSmatrix.genInitActxt(Actxts, Amat);
+    HELIB_NTIMER_STOP(enc_testPreMul);
+    printNamedTimer(cout, "enc_testPreMul");
+
     CKKSmatrix.encryptRmat(Bctxt, Bmat);
-    HELIB_NTIMER_STOP(enc_ckksmatrix);
-    printNamedTimer(cout, "enc_ckksmatrix");
+
+    stringstream ss;
+    for (int i = 0; i < Actxts.size(); i++)
+    {
+        Actxts[i].writeTo(ss);
+    }
+    string ClientTemp = ss.str();
+    uint64_t client_totalLength = ClientTemp.size();
+    
+    cout << "Ciphertext size = : " << ((double) client_totalLength / (double)(1024 * 1024)) << " MB" << endl;
     
     /*---------------------------------------*/
     //  GenPoly
@@ -321,34 +347,39 @@ void CKKSmatrixTest::testMult_preprocessing(long nrows){
     /*---------------------------------------*/
     //  Mult
     /*---------------------------------------*/
-    HELIB_NTIMER_START(Mul_testMul);
     Ctxt Cctxt(meta.data->publicKey);
+
+    HELIB_NTIMER_START(Mul_testPreMul);
     CKKSmatrix.HEmatmul_preprocessing(Cctxt, Actxts, Bctxt, Initpoly);
-    HELIB_NTIMER_STOP(Mul_testMul);
-    printNamedTimer(cout, "Mul_testMul");
+    HELIB_NTIMER_STOP(Mul_testPreMul);
+    printNamedTimer(cout, "Mul_testPreMul");
     
     /*---------------------------------------*/
     //  Decryption
     /*---------------------------------------*/
     Mat<RR> CKKSresmat;
+
+    HELIB_NTIMER_START(Dec_testPreMul);
     CKKSmatrix.decryptRmat(CKKSresmat, Cctxt);
+    HELIB_NTIMER_STOP(Dec_testPreMul);
+    printNamedTimer(cout, "Dec_testPreMul");
     
     /*---------------------------------------*/
     //  Error
     /*---------------------------------------*/
-    Mat<RR> resmat;
-    mul(resmat, Amat, Bmat);
+    // Mat<RR> resmat;
+    // mul(resmat, Amat, Bmat);
     
-    RR error = getError(resmat, CKKSresmat, nrows, ncols);
-    cout << "Error (mul): " << error << endl;
+    // RR error = getError(resmat, CKKSresmat, nrows, ncols);
+    // cout << "Error (mul): " << error << endl;
     
-    cout << "------------------" << endl;
-    cout << "Plaintext" << endl;
-    printRmatrix(resmat, nrows);
-    cout << "------------------" << endl;
-    cout << "Encryption" << endl;
-    printRmatrix(CKKSresmat, nrows);
-    cout << "------------------" << endl;
+    // cout << "------------------" << endl;
+    // cout << "Plaintext" << endl;
+    // printRmatrix(resmat, nrows);
+    // cout << "------------------" << endl;
+    // cout << "Encryption" << endl;
+    // printRmatrix(CKKSresmat, nrows);
+    // cout << "------------------" << endl;
 }
 
 void CKKSmatrixTest::testRMult_preprocessing(long nrows, long subdim){

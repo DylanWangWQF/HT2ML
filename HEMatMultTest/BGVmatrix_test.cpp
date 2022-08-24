@@ -18,10 +18,10 @@
 #include <NTL/mat_ZZ.h>
 #include <NTL/BasicThreadPool.h>
 #include <NTL/matrix.h>
+#include <helib/helib.h>
 
-#include "../src/helib/helib.h"
-#include "hematrix.h"
-#include "HEmatrix_test.h"
+#include "BGVmatrix.h"
+#include "BGVmatrix_test.h"
 
 using namespace std;
 using namespace helib;
@@ -139,7 +139,8 @@ void HEmatrixTest::testMult(long nrows) {
 //    Params param(/*m=*/9472, /*p=*/127, /*r=*/1, /*bits=*/119, /*c=*/2);
 //    Params param(/*m=*/16384, /*p=*/8191, /*r=*/1, /*bits=*/120, /*c=*/2);
 //    Params param(/*m=*/16384, /*p=*/6143, /*r=*/1, /*bits=*/180, /*c=*/2);
-    Params param(/*m=*/40960, /*p=*/40961, /*r=*/1, /*bits=*/180, /*c=*/2);
+    // Params param(/*m=*/40960, /*p=*/40961, /*r=*/1, /*bits=*/180, /*c=*/2);
+    Params param(/*m=*/16384, /*p=*/8191, /*r=*/1, /*bits=*/120, /*c=*/2);
     
     HEMatpar HEmatpar;
     readHEMatpar(HEmatpar, nrows, ncols);
@@ -173,8 +174,8 @@ void HEmatrixTest::testMult(long nrows) {
             Bmat[i][j]= j % 2;
         }
     }
-    cout << "Generated matrixA: " << Amat << endl;
-    cout << "Generated matrixB: " << Bmat << endl;
+    // cout << "Generated matrixA: " << Amat << endl;
+    // cout << "Generated matrixB: " << Bmat << endl;
     
     /*---------------------------------------*/
     //  Encryption
@@ -182,12 +183,15 @@ void HEmatrixTest::testMult(long nrows) {
     
     Ctxt Actxt(meta.data->publicKey);
     HEmatrix.encryptZmat(Actxt, Amat);
-    stringstream ss;
-    Actxt.writeTo(ss);
-    string temp = ss.str();
-    cout << "64 ctxt length: " << temp.length() << endl;
     Ctxt Bctxt(meta.data->publicKey);
     HEmatrix.encryptZmat(Bctxt, Bmat);
+
+    stringstream ss;
+    Actxt.writeTo(ss);
+    string ClientTemp = ss.str();
+    uint64_t client_totalLength = ClientTemp.size();
+    
+    cout << "Ciphertext size = : " << ((double) client_totalLength / (double)(1024 * 1024)) << " MB" << endl;
     
     /*---------------------------------------*/
     //  GenPoly
@@ -197,13 +201,13 @@ void HEmatrixTest::testMult(long nrows) {
     HELIB_NTIMER_START(GenMulPoly_testMul);
     HEmatrix.genMultPoly(Initpoly);
     HELIB_NTIMER_STOP(GenMulPoly_testMul);
-    printNamedTimer(cout, "GenMulPoly_testMul");
+    // printNamedTimer(cout, "GenMulPoly_testMul");
     
     zzX* shiftpoly;
     HELIB_NTIMER_START(GenShiftPoly_testMul);
     HEmatrix.genShiftPoly(shiftpoly);
     HELIB_NTIMER_STOP(GenShiftPoly_testMul);
-    printNamedTimer(cout, "GenShiftPoly_testMul");
+    // printNamedTimer(cout, "GenShiftPoly_testMul");
     
     /*---------------------------------------*/
     //  Mult
@@ -759,7 +763,8 @@ void HEmatrixTest::testMult_preprocessing(long nrows) {
     long ncols = nrows;
     
 //    Params param(/*m=*/12800, /*p=*/127, /*r=*/1, /*bits=*/119, /*c=*/2);
-    Params param(/*m=*/17408, /*p=*/127, /*r=*/1, /*bits=*/180, /*c=*/2);
+    // Params param(/*m=*/17408, /*p=*/127, /*r=*/1, /*bits=*/180, /*c=*/2);
+    Params param(/*m=*/16384, /*p=*/8191, /*r=*/1, /*bits=*/120, /*c=*/2);
     
     HEMatpar HEmatpar;
     readHEMatpar(HEmatpar, nrows, ncols);
@@ -792,8 +797,8 @@ void HEmatrixTest::testMult_preprocessing(long nrows) {
             Bmat[i][j]= (i % 3);
         }
     }
-    cout << "Generated matrixA: " << Amat << endl;
-    cout << "Generated matrixB: " << Bmat << endl;
+    // cout << "Generated matrixA: " << Amat << endl;
+    // cout << "Generated matrixB: " << Bmat << endl;
     
     /*---------------------------------------*/
     //  Encryption
@@ -807,6 +812,16 @@ void HEmatrixTest::testMult_preprocessing(long nrows) {
     HEmatrix.encryptZmat(Bctxt, Bmat);
     HELIB_NTIMER_STOP(Enc_testMul_preprocessing);
     printNamedTimer(cout, "Enc_testMul_preprocessing");
+
+    stringstream ss;
+    for (int i = 0; i < Actxts.size(); i++)
+    {
+        Actxts[i].writeTo(ss);
+    }
+    string ClientTemp = ss.str();
+    uint64_t client_totalLength = ClientTemp.size();
+    
+    cout << "Ciphertext size = : " << ((double) client_totalLength / (double)(1024 * 1024)) << " MB" << endl;
     
     /*---------------------------------------*/
     //  GenPoly

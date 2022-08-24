@@ -174,7 +174,7 @@ int main(int argc, const char * argv[]) {
     /*---------------------------------------*/
     //  Setup
     /*---------------------------------------*/
-    SetNumThreads(4);
+    SetNumThreads(16);
     // Setup the encalve params
     oe_result_t result;
     int ret = 0;
@@ -184,8 +184,9 @@ int main(int argc, const char * argv[]) {
     ckksMatpar ckksmatpar;
     long ncols = 64, nrows = 64, subdim = 16;
     readckksMatpar(ckksmatpar, nrows, ncols, subdim); // subdim used in below RecMul
-    // ckksParams param(/*m=*/16 * 1024, /*bits=*/179, /*precision=*/20, /*c=*/2);
-    ckksParams param(/*m=*/16 * 1024, /*bits=*/235, /*precision=*/20, /*c=*/4);
+    ckksParams param(/*m=*/16 * 1024, /*bits=*/179, /*precision=*/20, /*c=*/2);
+    // ckksParams param(/*m=*/16 * 1024, /*bits=*/300, /*precision=*/20, /*c=*/2);
+    // ckksParams param(/*m=*/16 * 1024, /*bits=*/235, /*precision=*/20, /*c=*/4);
     ckksMeta meta;
     meta(param);
     cout << "HE Context contents: " << endl;
@@ -240,7 +241,7 @@ int main(int argc, const char * argv[]) {
     ContextStringTemp = ss.str();
     context_len = ContextStringTemp.size();
     hecontext = (uint8_t*)ContextStringTemp.c_str();
-    cout << "Host: check size of context and keys: " << ((double) context_len / (double)(1024 * 1024)) << " MB" << endl;
+    // cout << "Host: check size of context and keys: " << ((double) context_len / (double)(1024 * 1024)) << " MB" << endl;
 
     cout << "Host: transform HE params (context, sk and pk) into enclave:" << endl;
     result = enclave_init(enclave, &ret, hecontext, context_len);
@@ -273,14 +274,14 @@ int main(int argc, const char * argv[]) {
     //  Encrypt the model params
     /*---------------------------------------*/
     // 1. ct.K_{i, j}_{k}
-    cout << "Preparing model params ciphertext, ct_K..." << endl;
+    // cout << "Preparing model params ciphertext, ct_K..." << endl;
     for (int i = 0; i < ct_K.size(); i++) // 28 * 7
     {
         CKKSmatrix.encryptRmat(ct_K[i], kernel_weights[i]);
     }
 
     // 2. ct.W_{k}, preprocessed ctxt
-    cout << "Preparing model params ciphertext, ct_W..." << endl;
+    // cout << "Preparing model params ciphertext, ct_W..." << endl;
     for (int i = 0; i < dense1_dim2 / dense1_dim1; i++) // 256/64=4
     {
         vector<Ctxt> temp;
@@ -289,7 +290,7 @@ int main(int argc, const char * argv[]) {
     }
 
     // 3. ct.V, preprocessed ctxt
-    cout << "Preparing model params ciphertext, ct_V..." << endl;
+    // cout << "Preparing model params ciphertext, ct_V..." << endl;
     CKKSmatrix.genInitRecActxt(ct_V, dense2_weights);
 
     /*---------------------------------------*/
@@ -319,12 +320,12 @@ int main(int argc, const char * argv[]) {
     }
 
     // Todo: set a if() statement to check if invoking refreshCtxts()
-    // ret = RefreshMultipleCtxts(ct_Ck, totalLength, meta);
-    // if (ret != 0)
-    // {
-    //     cerr << "Host: RefreshMultipleCtxts failed with " << ret << endl;
-    //     goto exit;
-    // }
+    ret = RefreshMultipleCtxts(ct_Ck, totalLength, meta);
+    if (ret != 0)
+    {
+        cerr << "Host: RefreshMultipleCtxts failed with " << ret << endl;
+        goto exit;
+    }
 
     // 3. HE FC-1 layer, 64 * 256 X 256 * 64 = 64 * 64, ct.W_{k} and ct_C_{k}
     // cout << endl << "Inference-FC-1 layer..." << endl;
@@ -334,6 +335,10 @@ int main(int argc, const char * argv[]) {
         CKKSmatrix.HEmatmul_preprocessing(temp, ct_W[k], ct_Ck[k], Initpoly);
         ct_F += temp;
     }
+
+    // cout << "ct_F.capacity=" << ct_F.capacity() << " ";
+    // cout << "ct_F.isCorrect=" << ct_F.isCorrect() << " ";
+    // cout << "ct_F.errorBound=" << ct_F.errorBound() << "\n";
 
     ret = RefreshSingleCtxt(ct_F, totalLength);
     if (ret != 0)
@@ -346,16 +351,22 @@ int main(int argc, const char * argv[]) {
     // cout << endl << "Inference-square2 layer..." << endl;
     ct_F.square();
 
+    // cout << endl << "ct_F.capacity=" << ct_F.capacity() << " ";
+    // cout << "ct_F.isCorrect=" << ct_F.isCorrect() << " ";
+    // cout << "ct_F.errorBound=" << ct_F.errorBound() << "\n";
+
     // 5. HE FC-2 layer, 10 * 64 X 64 * 64 = 10 * 64, ct.V and ct_F
     // cout << endl << "Inference-FC-2 layer..." << endl;
     CKKSmatrix.HErmatmul_preprocessing(inference_result, ct_V, ct_F, Initpoly);
     inference_result.bumpNoiseBound(1e-7);
 
+    // cout << endl << "inference_result.isCorrect=" << inference_result.isCorrect() << endl;
+
     end = std::chrono::steady_clock::now();
     diff = end - start;
     timeElapsed = chrono::duration <double, milli> (diff).count()/1000.0;
     cout << "------------------------------------------------------------------------" << endl;
-    cout << "Host: Inference Time= " << timeElapsed << " s" << endl;
+    cout << "Host: HETEE Inference Time = " << timeElapsed << " s" << endl;
     cout << "------------------------------------------------------------------------" << endl;
 
 exit:

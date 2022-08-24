@@ -120,7 +120,7 @@ int main(int argc, const char * argv[]) {
     /*---------------------------------------*/
     //  Setup
     /*---------------------------------------*/
-    SetNumThreads(4);
+    SetNumThreads(16);
     // Setup the encalve params
     oe_result_t result;
     int ret = 0;

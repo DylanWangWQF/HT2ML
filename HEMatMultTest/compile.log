@@ -1,0 +1,9 @@
+clang++ -pthread -std=c++17 main.cpp /home/dylan/code/EHPPML/src/data/*.cpp /home/dylan/code/EHPPML/src/utils/*.cpp /home/dylan/code/EHPPML/src/HEMat/*.cpp -o TestData -Wall -g -O3 -std=c++17 -I/home/dylan/code/EHPPML/src/data -I/home/dylan/code/EHPPML/src/utils -I/home/dylan/code/EHPPML/src/HEMat -I/usr/local/include -L/usr/local/lib /usr/local/lib/libhelib.a /usr/local/lib/libntl.a /usr/local/lib/libgmp.a -lm
+
+
+
+clang++ -g -pthread -std=c++17 main.cpp /home/dylan/code/EHPPML/src/data/*.cpp /home/dylan/code/EHPPML/src/utils/*.cpp /home/dylan/code/EHPPML/src/HEMat/*.cpp -o TestData -Wall -g -O3 -std=c++17 -I/home/dylan/code/EHPPML/src/data -I/home/dylan/code/EHPPML/src/utils -I/home/dylan/code/EHPPML/src/HEMat -I/usr/local/include -L/usr/local/lib /usr/local/lib/libhelib.a /usr/local/lib/libntl.a /usr/local/lib/libgmp.a -lm
+
+
+
+clang++ -pthread -std=c++17 /home/dylan/code/HETEE/HEMatMultTest/*.cpp -o TestHEMat -O3 -I/home/dylan/code/HETEE/HEMatMultTest -I/usr/local/include -L/usr/local/lib /usr/local/lib/libhelib.a /usr/local/lib/libntl.a /usr/local/lib/libgmp.a -lm

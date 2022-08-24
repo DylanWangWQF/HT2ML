@@ -149,9 +149,16 @@ int main(int argc, const char * argv[]) {
     // Setup ctxts during inference
     vector<vector<Ctxt>> ct_I(num_kernels, vector<Ctxt>(9, Ctxt(meta.data->publicKey))); // 576 / 64 = 9, vector size = 25 * 9
     vector<Ctxt> ct_K(kernel_dim1 * kernel_dim2, Ctxt(meta.data->publicKey)); // 30 * 5
+    // original-HE
+    // vector<Ctxt> ct_W(14, Ctxt(meta.data->publicKey));
+    // optimised-HE
     vector<vector<Ctxt>> ct_W;
     vector<vector<Ctxt>> ct_Ck(num_channels, vector<Ctxt>(9, Ctxt(meta.data->publicKey)));
     vector<Ctxt> ct_enclave(14, Ctxt(meta.data->publicKey));
+    // original-HE
+    // vector<vector<EncodedPtxt>> Initpoly;
+    // vector<EncodedPtxt> shiftpoly;
+    // optimised-HE
     vector<EncodedPtxt> Initpoly;
     vector<Ctxt> rmul_temp(14, Ctxt(meta.data->publicKey));
     Ctxt inference_result(meta.data->publicKey);
@@ -221,6 +228,10 @@ int main(int argc, const char * argv[]) {
     /*---------------------------------------*/
     //  Pre-process polynominals
     /*---------------------------------------*/
+    // original-HE
+    // CKKSmatrix.genMultPoly(Initpoly);
+    // CKKSmatrix.genShiftPoly(shiftpoly);
+    // optimised-HE
     CKKSmatrix.genMultBPoly(Initpoly);
 
     /*---------------------------------------*/
@@ -276,21 +287,39 @@ int main(int argc, const char * argv[]) {
 
     // 2. ct.W_{k}, preprocessed ctxt
     // cout << "Preparing model params ciphertext, ct_W..." << endl;
+
+    // original-HE
+    // for (int i = 0; i < 14; i++) // 864/64=13.5=14
+    // {
+    //     CKKSmatrix.encryptRmat(ct_W[i], dense1_weights[i]);
+    // }
+
+    // optimised-HE
     for (int i = 0; i < 14; i++) // 864/64=13.5=14
     {
         vector<Ctxt> temp;
         CKKSmatrix.genInitRecActxt(temp, dense1_weights[i]);
         ct_W.push_back(temp);
     }
+    
     server_end = std::chrono::steady_clock::now();
     server_diff = server_end - server_start;
     server_timeElapsed = chrono::duration <double, milli> (server_diff).count()/1000.0;
+
     ss.str(std::string());
     ss.clear();
     for (int i = 0; i < ct_K.size(); i++)
     {
         ct_K[i].writeTo(ss);
     }
+
+    // original-HE
+    // for (int i = 0; i < 14; i++)
+    // {
+    //     ct_W[i].writeTo(ss);  
+    // }
+
+    // optimised-HE
     for (int i = 0; i < 14; i++)
     {
         for (int j = 0; j < ct_W[i].size(); j++)
@@ -298,6 +327,7 @@ int main(int argc, const char * argv[]) {
             ct_W[i][j].writeTo(ss);
         }  
     }
+
     ServerTemp = ss.str();
     server_totalLength = ServerTemp.size();
     cout << "------------------------------------------------------------------------" << endl;
@@ -325,10 +355,6 @@ int main(int argc, const char * argv[]) {
         }
     }
 
-    // cout << "ct_Ck.capacity=" << ct_Ck[0][0].capacity() << " ";
-    // cout << "ct_Ck.isCorrect=" << ct_Ck[0][0].isCorrect() << " ";
-    // cout << "ct_Ck.errorBound=" << ct_Ck[0][0].errorBound() << "\n";
-
     // 2. activation and pooling layer
     // cout << endl << "Inference-activation and pooling layer..." << endl;
     // should output 864 * 64 => 14 of 64 * 64
@@ -339,6 +365,15 @@ int main(int argc, const char * argv[]) {
 
     // 3. HE FC-2 layer, 10 * 64 X 64 * 64 = 10 * 64, ct.V and ct_F
     // cout << endl << "Inference-FC layer..." << endl;
+
+    // original-HE
+    // for (int i = 0; i < 14; i++)
+    // {
+    //     CKKSmatrix.HErmatmul(rmul_temp[i], ct_W[i], ct_enclave[i], Initpoly, shiftpoly);
+    //     inference_result += rmul_temp[i];
+    // }
+
+    // optimised-HE
     for (int i = 0; i < 14; i++)
     {
         CKKSmatrix.HErmatmul_preprocessing(rmul_temp[i], ct_W[i], ct_enclave[i], Initpoly);
@@ -351,6 +386,8 @@ int main(int argc, const char * argv[]) {
     timeElapsed = chrono::duration <double, milli> (diff).count()/1000.0;
     cout << "------------------------------------------------------------------------" << endl;
     cout << "Host: Inference Time= " << timeElapsed << " s" << endl;
+    cout << "------------------------------------------------------------------------" << endl;
+    cout << "Host: Communication Cost between Server and Enclave = : " << ((double) totalLength / (double)(1024 * 1024)) << " MB" << endl;
     cout << "------------------------------------------------------------------------" << endl;
 
 exit:

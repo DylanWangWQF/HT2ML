@@ -30,14 +30,14 @@ set(OE_CRYPTO_LIB
 # Create an imported executable for use by tests.
 add_executable(apkman IMPORTED)
 set_target_properties(
-  apkman PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/../../../alpineapkman/apkman)
+  apkman PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/../../../../alpineapkman/apkman)
 
-execute_process(COMMAND ${PROJECT_SOURCE_DIR}/../../../alpineapkman/apkman help
+execute_process(COMMAND ${PROJECT_SOURCE_DIR}/../../../../alpineapkman/apkman help
                         COMMAND_ERROR_IS_FATAL ANY)
 
 # Fetch apkman root folder for accessing includes and libraries.
 execute_process(
-  COMMAND ${PROJECT_SOURCE_DIR}/../../../alpineapkman/apkman root COMMAND_ERROR_IS_FATAL
+  COMMAND ${PROJECT_SOURCE_DIR}/../../../../alpineapkman/apkman root COMMAND_ERROR_IS_FATAL
           ANY OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE APKMAN_ROOT)
 
 # Ensure that apkman is initialized.

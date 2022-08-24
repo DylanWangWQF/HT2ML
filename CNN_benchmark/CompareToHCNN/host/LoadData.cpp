@@ -29,7 +29,7 @@ bool LoadData(Mat<RR> &rawData, int &weight_dim1, int &weight_dim2, string &file
 void CropImages(vector<vector<float>>& test_imgs, vector<unsigned char>& test_lbls, Mat<RR>*& feaMat, int MNIST_HEIGHT, int MNIST_WIDTH, int num_imgs, int kernel_size, int stride, int window_size)
 {
     size_t test_img_limit = 0;
-    string datasets_dir = "/home/dylan/mysamples/TEE-HE-PPML/CompareToICDCS/scripts";
+    string datasets_dir = "/home/dylan/code/HETEE/CNN_benchmark/CompareToHCNN/scripts";
     test_imgs = loadMnistTestImages(datasets_dir, test_img_limit);
     test_lbls = loadMnistTestLabels(datasets_dir, test_img_limit);
     // cout << "Dimension of imgs: (" << test_imgs.size() << ", " << test_imgs[0].size() << ")" << endl << endl;
@@ -83,8 +83,8 @@ void LoadModel(Mat<RR>*& kernel_weights, Mat<RR>*& dense1_weights, int& kernel_d
     Mat<RR> raw_kernel_weights; // 30 * 5
     Mat<RR> raw_dense1_weights; // 10 * 864
 
-    string datafile1 = "/home/dylan/mysamples/TEE-HE-PPML/CompareToICDCS/host/model/kernels_weights.dat";
-    string datafile2 = "/home/dylan/mysamples/TEE-HE-PPML/CompareToICDCS/host/model/dense1_weights.dat";
+    string datafile1 = "/home/dylan/code/HETEE/CNN_benchmark/CompareToHCNN/host/model/kernels_weights.dat";
+    string datafile2 = "/home/dylan/code/HETEE/CNN_benchmark/CompareToHCNN/host/model/dense1_weights.dat";
     if (!LoadData(raw_kernel_weights, kernel_dim1, kernel_dim2, datafile1)) {
         return;
     }
@@ -119,6 +119,9 @@ void LoadModel(Mat<RR>*& kernel_weights, Mat<RR>*& dense1_weights, int& kernel_d
     // 2. matrix for ct.W_{k}, num = 14
     for (int k = 0; k < 14; k++)
     {
+        // original-HE
+        // dense1_weights[k].SetDims(64, 64);
+        // optimised-HE
         dense1_weights[k].SetDims(16, 64);
         for (int i = 0; i < 16; i++)
         {

@@ -29,7 +29,7 @@ bool LoadData(Mat<RR> &rawData, int &weight_dim1, int &weight_dim2, string &file
 void CropImages(vector<vector<float>>& test_imgs, vector<unsigned char>& test_lbls, Mat<RR>*& feaMat, int MNIST_HEIGHT, int MNIST_WIDTH, int num_imgs, int kernel_size, int stride, int num_windows, int window_size)
 {
     size_t test_img_limit = 0;
-    string datasets_dir = "/home/dylan/mysamples/TEE-HE-PPML/CompareToHE/scripts";
+    string datasets_dir = "/home/dylan/code/HETEE/CNN_benchmark/CompareToE2DM/scripts";
     test_imgs = loadMnistTestImages(datasets_dir, test_img_limit);
     test_lbls = loadMnistTestLabels(datasets_dir, test_img_limit);
     // cout << "Dimension of imgs: (" << test_imgs.size() << ", " << test_imgs[0].size() << ")" << endl << endl;
@@ -84,9 +84,9 @@ void LoadModel(Mat<RR>*& kernel_weights, Mat<RR>*& dense1_weights, Mat<RR>& dens
     Mat<RR> raw_dense1_weights; // 64 * 256
     Mat<RR> raw_dense2_weights; // 10* 64
 
-    string datafile1 = "/home/dylan/mysamples/TEE-HE-PPML/CompareToHE/host/model/kernels_weights.dat";
-    string datafile2 = "/home/dylan/mysamples/TEE-HE-PPML/CompareToHE/host/model/dense1_weights.dat";
-    string datafile3 = "/home/dylan/mysamples/TEE-HE-PPML/CompareToHE/host/model/dense2_weights.dat";
+    string datafile1 = "/home/dylan/code/HETEE/CNN_benchmark/CompareToE2DM/host/model/kernels_weights.dat";
+    string datafile2 = "/home/dylan/code/HETEE/CNN_benchmark/CompareToE2DM/host/model/dense1_weights.dat";
+    string datafile3 = "/home/dylan/code/HETEE/CNN_benchmark/CompareToE2DM/host/model/dense2_weights.dat";
     if (!LoadData(raw_kernel_weights, kernel_dim1, kernel_dim2, datafile1)) {
         return;
     }

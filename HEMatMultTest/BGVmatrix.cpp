@@ -21,9 +21,9 @@
 #include <NTL/ZZX.h>
 #include <NTL/mat_ZZ.h>
 #include <NTL/vec_ZZ.h>
+#include <helib/helib.h>
 
-#include "../src/helib/helib.h"
-#include "hematrix.h"
+#include "BGVmatrix.h"
 
 
 void readHEMatpar(HEMatpar& HEmatpar, long nrows, long ncols, long subdim, long nbatching){
