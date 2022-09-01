@@ -1,0 +1,226 @@
+m = 10787, p = 127, phi(m) = 8712
+  ord(p) = 33
+  normBnd = 2.02581
+  polyNormBnd = 21.6152
+  factors = [7 23 67]
+  generator 1408 has order (== Z_m^*) of 22
+  generator 3083 has order (== Z_m^*) of 6
+  generator 9178 has order (== Z_m^*) of 2
+r = 1
+nslots = 264
+hwt = 120
+ctxtPrimes = [6,7,8,9,10,11]
+specialPrimes = [12,13,14]
+number of bits = 497
+
+security level = 61.8037
+------------------------------------------------------------------------
+Total HE Training Time = 13.9623 s
+------------------------------------------------------------------------
+
+ phim=8712    d=33      m=10787  m=7*23*(67)   m/phim(m)=1.23   C=61 D=3 E=0  mvec="[23 7 67]" gens="[1408 3083 9178]" ords="[22 6 2]" 
+
+
+ m = 14287, p = 127, phi(m) = 11232
+  ord(p) = 78
+  normBnd = 2.01938
+  polyNormBnd = 13.747
+  factors = [7 13 157]
+  generator 2199 has order (== Z_m^*) of 12
+  generator 8165 has order (== Z_m^*) of 6
+  generator 8009 has order (!!= Z_m^*) of 2
+r = 1
+nslots = 144
+hwt = 120
+ctxtPrimes = [6,7,8,9,10,11]
+specialPrimes = [12,13,14]
+number of bits = 498
+
+security level = 74.1339
+------------------------------------------------------------------------
+Total HE Training Time = 30.9631 s
+------------------------------------------------------------------------
+
+ phim=11232    d=78      m=14287  m=7*13*(157)   :-( m/phim(m)=1.27   C=97 D=4 E=1  mvec="[13 7 157]" gens="[2199 8165 8009]" ords="[12 6 -2]" 
+
+ m = 14577, p = 127, phi(m) = 9408
+  ord(p) = 28
+  normBnd = 1.87098
+  polyNormBnd = 8.49029
+  factors = [3 43 113]
+  generator 11527 has order (== Z_m^*) of 42
+  generator 9719 has order (== Z_m^*) of 2
+  generator 12772 has order (!!= Z_m^*) of 4
+r = 1
+nslots = 336
+hwt = 120
+ctxtPrimes = [6,7,8,9,10,11]
+specialPrimes = [12,13,14]
+number of bits = 498
+
+security level = 65.2106
+------------------------------------------------------------------------
+Total HE Training Time = 18.8273 s
+------------------------------------------------------------------------
+
+ phim=9408    d=28      m=14577  m=3*43*(113)   :-( m/phim(m)=1.54   C=77 D=4 E=2  mvec="[43 3 113]" gens="[11527 9719 12772]" ords="[42 2 -4]" 
+
+ m = 15785, p = 127, phi(m) = 9600
+  ord(p) = 20
+  normBnd = 2.48004
+  polyNormBnd = 120.072
+  factors = [5 7 11 41]
+  generator 12916 has order (== Z_m^*) of 10
+  generator 4511 has order (== Z_m^*) of 6
+  generator 1233 has order (== Z_m^*) of 8
+r = 1
+nslots = 480
+hwt = 120
+ctxtPrimes = [6,7,8,9,10,11]
+specialPrimes = [12,13,14]
+number of bits = 498
+
+security level = 66.175
+------------------------------------------------------------------------
+Total HE Training Time = 15.1007 s
+------------------------------------------------------------------------
+
+ phim=9600    d=20      m=15785  m=(5)*7*11*{41}   m/phim(m)=1.64   C=42 D=3 E=2  mvec="[11 7 205]" gens="[12916 4511 1233]" ords="[10 6 8]" 
+
+ m = 16653, p = 127, phi(m) = 8640
+  ord(p) = 30
+  normBnd = 2.33134
+  polyNormBnd = 56.4676
+  factors = [3 7 13 61]
+  generator 2563 has order (== Z_m^*) of 12
+  generator 11896 has order (== Z_m^*) of 6
+  generator 5552 has order (== Z_m^*) of 2
+  generator 10921 has order (!!= Z_m^*) of 2
+r = 1
+nslots = 288
+hwt = 120
+ctxtPrimes = [6,7,8,9,10,11]
+specialPrimes = [12,13,14]
+number of bits = 498
+
+security level = 61.4374
+------------------------------------------------------------------------
+Total HE Training Time = 13.8109 s
+------------------------------------------------------------------------
+
+ phim=8640    d=30      m=16653  m=3*7*13*(61)   :-( m/phim(m)=1.92   C=51 D=5 E=1  mvec="[13 7 3 61]" gens="[2563 11896 5552 10921]" ords="[12 6 2 -2]"
+
+
+ m = 16835, p = 127, phi(m) = 10368
+  ord(p) = 36
+  normBnd = 2.4846
+  polyNormBnd = 99.7776
+  factors = [5 7 13 37]
+  generator 6476 has order (== Z_m^*) of 12
+  generator 9621 has order (== Z_m^*) of 6
+  generator 10921 has order (== Z_m^*) of 4
+r = 1
+nslots = 288
+hwt = 120
+ctxtPrimes = [6,7,8,9,10,11]
+specialPrimes = [12,13,14]
+number of bits = 497
+
+security level = 69.9658
+------------------------------------------------------------------------
+Total HE Training Time = 18.5028 s
+------------------------------------------------------------------------
+
+ phim=10368    d=36      m=16835  m=(5)*7*13*{37}   m/phim(m)=1.62   C=56 D=3 E=2  mvec="[13 7 185]" gens="[6476 9621 10921]" ords="[12 6 4]" 
+
+
+m = 17255, p = 127, phi(m) = 10752
+  ord(p) = 56
+  normBnd = 2.48871
+  polyNormBnd = 594.499
+  factors = [5 7 17 29]
+  generator 4931 has order (== Z_m^*) of 6
+  generator 3452 has order (== Z_m^*) of 4
+  generator 5426 has order (!= Z_m^*) of 8
+r = 1
+nslots = 192
+hwt = 120
+ctxtPrimes = [6,7,8,9,10,11]
+specialPrimes = [12,13,14]
+number of bits = 497
+
+security level = 71.8518
+------------------------------------------------------------------------
+Total HE Training Time = 32.8033 s
+------------------------------------------------------------------------
+
+phim=10752    d=56      m=17255  m=5*7*(17)*{29}   :-( m/phim(m)=1.6   C=79 D=4 E=3  mvec="[7 5 493]" gens="[4931 3452 5426]" ords="[6 4 -8]" 
+
+
+m = 17507, p = 127, phi(m) = 14400
+  ord(p) = 30
+  normBnd = 2.02789
+  polyNormBnd = 22.5446
+  factors = [7 41 61]
+  generator 9395 has order (== Z_m^*) of 40
+  generator 2502 has order (== Z_m^*) of 6
+  generator 12629 has order (!!= Z_m^*) of 2
+r = 1
+nslots = 480
+hwt = 120
+ctxtPrimes = [6,7,8,9,10,11]
+specialPrimes = [12,13,14]
+number of bits = 498
+
+security level = 89.7537
+------------------------------------------------------------------------
+Total HE Training Time = 28.1454 s
+------------------------------------------------------------------------
+
+phim=14400    d=30      m=17507  m=7*41*(61)   :-( m/phim(m)=1.21   C=77 D=4 E=1  mvec="[41 7 61]" gens="[9395 2502 12629]" ords="[40 6 -2]" 
+
+m = 18907, p = 127, phi(m) = 15552
+  ord(p) = 36
+  normBnd = 2.0278
+  polyNormBnd = 19.5863
+  factors = [7 37 73]
+  generator 10732 has order (== Z_m^*) of 36
+  generator 13506 has order (== Z_m^*) of 6
+  generator 5699 has order (!!= Z_m^*) of 2
+r = 1
+nslots = 432
+hwt = 120
+ctxtPrimes = [6,7,8,9,10,11]
+specialPrimes = [12,13,14]
+number of bits = 498
+
+security level = 95.4356
+------------------------------------------------------------------------
+Total HE Training Time = 31.2878 s
+------------------------------------------------------------------------
+
+phim=15552    d=36      m=18907  m=7*37*(73)   :-( m/phim(m)=1.21   C=79 D=4 E=2  mvec="[37 7 73]" gens="[10732 13506 5699]" ords="[36 6 -2]" 
+
+m = 19929, p = 127, phi(m) = 10368
+  ord(p) = 36
+  normBnd = 2.3315
+  polyNormBnd = 95.1148
+  factors = [3 7 13 73]
+  generator 18397 has order (== Z_m^*) of 12
+  generator 17083 has order (== Z_m^*) of 6
+  generator 6644 has order (== Z_m^*) of 2
+  generator 5188 has order (!!= Z_m^*) of 2
+r = 1
+nslots = 288
+hwt = 120
+ctxtPrimes = [6,7,8,9,10,11]
+specialPrimes = [12,13,14]
+number of bits = 497
+
+security level = 69.9944
+------------------------------------------------------------------------
+Total HE Training Time = 19.5543 s
+------------------------------------------------------------------------
+
+
+phim=10368    d=36      m=19929  m=3*7*13*(73)   :-( m/phim(m)=1.92   C=57 D=5 E=2  mvec="[13 7 3 73]" gens="[18397 17083 6644 5188]" ords="[12 6 2 -2]" 
