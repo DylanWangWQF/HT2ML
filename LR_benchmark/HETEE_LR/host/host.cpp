@@ -134,10 +134,12 @@ int main(int argc, const char * argv[]) {
     Mat<long>* LabelMat;
     long num_DataMat;
     // string dataset = "../../scripts/2_dim_LR.dat";
-    string dataset = "../../scripts/4_dim_LR.dat";
+    // string dataset = "../../scripts/4_dim_LR.dat";
     // string dataset = "../../scripts/6_dim_LR.dat";
-    // string dataset = "../../scripts/8_dim_LR.dat";
+    string dataset = "../../scripts/8_dim_LR.dat";
     // string dataset = "../../scripts/16_dim_LR.dat";
+    // string dataset = "../../scripts/32_dim_LR.dat";
+    // string dataset = "../../scripts/64_dim_LR.dat";
     ProcessDataMatrix(DataMat, TranDataMat, LabelMat, num_DataMat, nrows, dataset);
 
     /*---------------------------------------*/
@@ -152,6 +154,8 @@ int main(int argc, const char * argv[]) {
     HEMatpar HEmatpar;
     readHEMatpar(HEmatpar, nrows, ncols);
     Params param(/*m=*/9472, /*p=*/127, /*r=*/1, /*bits=*/119, /*c=*/2);
+    // Params param(/*m=*/16384, /*p=*/6143, /*r=*/1, /*bits=*/180, /*c=*/2);
+    // Params param(/*m=*/16384, /*p=*/8191, /*r=*/1, /*bits=*/120, /*c=*/2);
     Meta meta;
     meta(param);
 
@@ -169,18 +173,18 @@ int main(int argc, const char * argv[]) {
 
     // Setup ctxts
     // original-HE
-    zzX** Initpoly;
-    zzX* shiftpoly;
+    // zzX** Initpoly;
+    // zzX* shiftpoly;
     // optimised-HE
-    // zzX* Initpoly;
+    zzX* Initpoly;
 
     // Enc(X^T)
     // used for original-HE
-    vector<Ctxt> EncTranDataMatOrHE(num_DataMat, Ctxt(meta.data->publicKey));
+    // vector<Ctxt> EncTranDataMatOrHE(num_DataMat, Ctxt(meta.data->publicKey));
     // used for optimised-HE
-    // vector<Ctxt> Actxts;
-    // vector<vector<Ctxt>> EncTranDataMat;
-    // vector<vector<Ctxt>> EncTranDataMat_2nd;
+    vector<Ctxt> Actxts;
+    vector<vector<Ctxt>> EncTranDataMat;
+    vector<vector<Ctxt>> EncTranDataMat_2nd;
     // Enc(X) and Enc(y)
     vector<Ctxt> EncDataMat(num_DataMat, Ctxt(meta.data->publicKey));
     vector<Ctxt> EncLabelMat(num_DataMat, Ctxt(meta.data->publicKey));
@@ -257,10 +261,10 @@ int main(int argc, const char * argv[]) {
     //  Pre-process polynominals
     /*---------------------------------------*/
     // original-HE
-    HEmatrix.genMultPoly(Initpoly);
-    HEmatrix.genShiftPoly(shiftpoly);
+    // HEmatrix.genMultPoly(Initpoly);
+    // HEmatrix.genShiftPoly(shiftpoly);
     // optimised-HE
-    // HEmatrix.genMultBPoly(Initpoly);
+    HEmatrix.genMultBPoly(Initpoly);
 
     /*---------------------------------------*/
     //  Encrypt the matrix
@@ -269,22 +273,22 @@ int main(int argc, const char * argv[]) {
     client_start= chrono::steady_clock::now();
 
     // original-HE-encryption
-    for (long i = 0; i < num_DataMat; ++i)
-    {
-        HEmatrix.encryptZmat(EncDataMat[i], DataMat[i]);
-        HEmatrix.encryptZmat(EncLabelMat[i], LabelMat[i]);
-        HEmatrix.encryptZmat(EncTranDataMatOrHE[i], TranDataMat[i]);
-    }
-
-    // optimised-HE-encryption
     // for (long i = 0; i < num_DataMat; ++i)
     // {
     //     HEmatrix.encryptZmat(EncDataMat[i], DataMat[i]);
     //     HEmatrix.encryptZmat(EncLabelMat[i], LabelMat[i]);
-    //     HEmatrix.genInitActxt(Actxts, TranDataMat[i]);
-    //     EncTranDataMat.push_back(Actxts);
-    //     EncTranDataMat_2nd.push_back(Actxts);
+    //     HEmatrix.encryptZmat(EncTranDataMatOrHE[i], TranDataMat[i]);
     // }
+
+    // optimised-HE-encryption
+    for (long i = 0; i < num_DataMat; ++i)
+    {
+        HEmatrix.encryptZmat(EncDataMat[i], DataMat[i]);
+        HEmatrix.encryptZmat(EncLabelMat[i], LabelMat[i]);
+        HEmatrix.genInitActxt(Actxts, TranDataMat[i]);
+        EncTranDataMat.push_back(Actxts);
+        EncTranDataMat_2nd.push_back(Actxts);
+    }
 
     client_end = std::chrono::steady_clock::now();
     client_diff = client_end - client_start;
@@ -293,22 +297,22 @@ int main(int argc, const char * argv[]) {
     ss.str(std::string());
     ss.clear();
     // original-HE-encryption
-    for (long i = 0; i < num_DataMat; i++)
-    {
-        EncDataMat[i].writeTo(ss);
-        EncLabelMat[i].writeTo(ss);
-        EncTranDataMatOrHE[i].writeTo(ss);
-    }
-    // optimised-HE-encryption
     // for (long i = 0; i < num_DataMat; i++)
     // {
     //     EncDataMat[i].writeTo(ss);
     //     EncLabelMat[i].writeTo(ss);
-    //     for (long  j = 0; j < EncTranDataMat[0].size(); j++)
-    //     {
-    //         EncTranDataMat[i][j].writeTo(ss);
-    //     }
+    //     EncTranDataMatOrHE[i].writeTo(ss);
     // }
+    // optimised-HE-encryption
+    for (long i = 0; i < num_DataMat; i++)
+    {
+        EncDataMat[i].writeTo(ss);
+        EncLabelMat[i].writeTo(ss);
+        for (long  j = 0; j < EncTranDataMat[0].size(); j++)
+        {
+            EncTranDataMat[i][j].writeTo(ss);
+        }
+    }
     ClientTemp = ss.str();
     client_totalLength = ClientTemp.size();
     cout << "------------------------------------------------------------------------" << endl;
@@ -324,30 +328,30 @@ int main(int argc, const char * argv[]) {
     // 1. TranDataMat * DataMat and TranDataMat * LabelMat
 
     // original-HE-mult
+    // for (long k = 0; k < num_DataMat; k++)
+    // {
+    //     HEmatrix.HEmatmul(EncResultMat1[k], EncTranDataMatOrHE[k], EncDataMat[k], Initpoly, shiftpoly);
+    //     result1 += EncResultMat1[k];
+    //     HEmatrix.HEmatmul(EncResultMat2[k], EncTranDataMatOrHE[k], EncLabelMat[k], Initpoly, shiftpoly);
+    //     result2 += EncResultMat2[k];
+    //     if (result1.capacity() < 2 || result2.capacity() < 2)
+    //     {
+    //         CallEnclaveForRefreshCtxt(result1, result2, meta, totalLength);
+    //     }
+    //     // cout << "Host: " << k <<"-th check the noise level, result1 = " << result1.capacity() << endl;
+    //     // cout << "Host: " << k <<"-th check the noise level, result2 = " << result2.capacity() << endl;
+    // }
+
+    // optimised-HE-mult
     for (long k = 0; k < num_DataMat; k++)
     {
-        HEmatrix.HEmatmul(EncResultMat1[k], EncTranDataMatOrHE[k], EncDataMat[k], Initpoly, shiftpoly);
+        HEmatrix.HEmatmul_preprocessing(EncResultMat1[k], EncTranDataMat[k], EncDataMat[k], Initpoly);
         result1 += EncResultMat1[k];
-        HEmatrix.HEmatmul(EncResultMat2[k], EncTranDataMatOrHE[k], EncLabelMat[k], Initpoly, shiftpoly);
+        HEmatrix.HEmatmul_preprocessing(EncResultMat2[k], EncTranDataMat_2nd[k], EncLabelMat[k], Initpoly);
         result2 += EncResultMat2[k];
-        if (result1.capacity() < 2 || result2.capacity() < 2)
-        {
-            CallEnclaveForRefreshCtxt(result1, result2, meta, totalLength);
-        }
         // cout << "Host: " << k <<"-th check the noise level, result1 = " << result1.capacity() << endl;
         // cout << "Host: " << k <<"-th check the noise level, result2 = " << result2.capacity() << endl;
     }
-
-    // optimised-HE-mult
-    // for (long k = 0; k < num_DataMat; k++)
-    // {
-    //     HEmatrix.HEmatmul_preprocessing(EncResultMat1[k], EncTranDataMat[k], EncDataMat[k], Initpoly);
-    //     result1 += EncResultMat1[k];
-    //     HEmatrix.HEmatmul_preprocessing(EncResultMat2[k], EncTranDataMat_2nd[k], EncLabelMat[k], Initpoly);
-    //     result2 += EncResultMat2[k];
-    //     cout << "Host: " << k <<"-th check the noise level, result1 = " << result1.capacity() << endl;
-    //     cout << "Host: " << k <<"-th check the noise level, result2 = " << result2.capacity() << endl;
-    // }
     host_end = std::chrono::steady_clock::now();
 
     // 2. Send/Receive ctxts to/from the enclave

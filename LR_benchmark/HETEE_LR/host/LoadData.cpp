@@ -4,33 +4,6 @@
 #include "LoadData.h"
 #include <NTL/BasicThreadPool.h>
 
-// bool LoadData(Mat<long> &rawData, Mat<long> &rawLabel, long &MatrixDim, string &filename){
-//     ifstream fin;
-//     fin.open(filename);
-//     if (!fin) {
-//         cout << "Unable to read data file." << endl;
-//         return false;
-//     }
-    
-//     long numAttr; //number of attributes
-//     long n; //the number of data samples
-//     long data;
-//     fin >> numAttr >> n;
-    
-//     // MatrixDim should be 16, 32, 64
-//     rawData.SetDims(n, MatrixDim); // data sample matrix
-//     // MatInit(rawData);
-//     rawLabel.SetDims(n, MatrixDim); // data sample matrix
-//     // MatInit(rawLabel);
-//     for (long i = 0; i < n; i++) {
-//         for (long j = 0; j < numAttr; j++) {
-//             fin >> rawData[i][j];
-//         }
-//         fin >> rawLabel[i][0];
-//     }
-//     return true;
-// }
-
 void ProcessDataMatrix(Mat<long>*& Amat, Mat<long>*& ATranmat, Mat<long>*& Bmat, long& numMat, long& MatrixDim, string& filename){
     ifstream fin;
     fin.open(filename);

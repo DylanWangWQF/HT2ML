@@ -81,13 +81,16 @@ int ecall_dispatcher::MatrixOperation(uint8_t* ectxt, size_t ectxt_len, uint8_t*
 
     // Crop the matrices by removing zeros
     // TRACE_ENCLAVE("Enclave: Crop the matrices!");
-    int RealMatrix1[numAttr][numAttr]; // 6 * 6
+
+    double *A = new double[numAttr*numAttr]();
+    // int RealMatrix1[numAttr][numAttr]; // 6 * 6
     int RealMatrix2[numAttr][1];  // 6 * 1
     for (int i = 0; i < numAttr; i++)
     {
         for (int j = 0; j < numAttr; j++)
         {
-            RealMatrix1[i][j] = HostMatrix[0][i][j];
+            // RealMatrix1[i][j] = HostMatrix[0][i][j];
+            A[i * numAttr + j] = HostMatrix[0][i][j];
             if (j == 0)
             {
                 RealMatrix2[i][j] = HostMatrix[1][i][j];
@@ -99,17 +102,33 @@ int ecall_dispatcher::MatrixOperation(uint8_t* ectxt, size_t ectxt_len, uint8_t*
     // HostMatrix[0] for inverse
     // TRACE_ENCLAVE("Enclave: calculate the inverse!");
     auto inverse_start= chrono::steady_clock::now();
-    int inverse_result[numAttr][numAttr];
+
+    // Adjoint
+    // int inverse_result[numAttr][numAttr];
+    // if (!inverse(RealMatrix1, inverse_result))
+    // {
+    //     cout << "Can't find its inverse" << endl;  
+    // }
+
+    // LUP Decomposition
+    double *invOfA = new double[numAttr*numAttr]();
+    invOfA = LUP_solve_inverse(A);
     
-    if (!inverse(RealMatrix1, inverse_result))
-    {
-        cout << "Can't find its inverse" << endl;  
-    }
 
     auto inverse_end= chrono::steady_clock::now();
     auto inverse_diff = inverse_end - inverse_start;
     // double inverse_timeElapsed = chrono::duration <double, micro> (inverse_diff).count();
-    double inverse_timeElapsed = chrono::duration <double, nano> (inverse_diff).count();
+    // double inverse_timeElapsed = chrono::duration <double, nano> (inverse_diff).count();
+    double inverse_timeElapsed = chrono::duration <double, milli> (inverse_diff).count();
+
+    int inverse_result[numAttr][numAttr];
+    for (int i = 0; i < numAttr; i++)
+    {
+        for (int j = 0; j < numAttr; j++)
+        {
+            inverse_result[i][j] = (int) invOfA[i * numAttr + j];
+        }
+    }
 
     // multiply the inverse by HostMatrix[1]
     // TRACE_ENCLAVE("Enclave: multiply the inverse!");
@@ -149,7 +168,7 @@ int ecall_dispatcher::MatrixOperation(uint8_t* ectxt, size_t ectxt_len, uint8_t*
     auto diff = end - start;
     double timeElapsed = chrono::duration <double, milli> (diff).count()/1000.0;
     cout << "------------------------------------------------------------------------" << endl;
-    cout << "Enclave: Matrix inverse runtime inside enclave = " << inverse_timeElapsed << " ns" << endl;
+    cout << "Enclave: Matrix inverse runtime inside enclave = " << inverse_timeElapsed << " ms" << endl;
     cout << "------------------------------------------------------------------------" << endl;
     cout << "Enclave: Runtime inside enclave = " << timeElapsed << " s" << endl;
     cout << "------------------------------------------------------------------------" << endl;
@@ -301,6 +320,196 @@ bool ecall_dispatcher::inverse(int A[numAttr][numAttr], int inverse[numAttr][num
 			inverse[i][j] = adj[i][j]/det;
 
 	return true;
+}
+
+void ecall_dispatcher::LUP_Descomposition(double A[numAttr*numAttr],double L[numAttr*numAttr],double U[numAttr*numAttr],int P[numAttr])
+{
+	int row = 0;
+    for(int i = 0; i < numAttr;i++)
+    {
+        P[i]=i;
+    }
+    for(int i=0;i<numAttr-1;i++)
+    {
+        double p=0.0;
+        for(int j=i;j<numAttr;j++)
+        {
+            if(abs(A[j*numAttr+i])>p)
+            {
+                p=abs(A[j*numAttr+i]);
+                row=j;
+            }
+        }
+        if(0==p)
+        {
+            cout<< "singular matrix, cannot find inverse" <<endl;
+            return ;
+        }
+
+        int tmp=P[i];
+        P[i]=P[row];
+        P[row]=tmp;
+
+        double tmp2=0.0;
+        for(int j=0;j<numAttr;j++)
+        {
+            tmp2=A[i*numAttr+j];
+            A[i*numAttr+j]=A[row*numAttr+j];
+            A[row*numAttr+j]=tmp2;
+        }
+
+        double u=A[i*numAttr+i], l=0.0;
+        for(int j=i+1;j<numAttr;j++)
+        {
+            l=A[j*numAttr+i]/u;
+            A[j*numAttr+i]=l;
+            for(int k=i+1;k<numAttr;k++)
+            {
+                A[j*numAttr+k]=A[j*numAttr+k]-A[i*numAttr+k]*l;
+            }
+        }
+
+    }
+
+    for(int i=0;i<numAttr;i++)
+    {
+        for(int j=0;j<=i;j++)
+        {
+            if(i!=j)
+            {
+                L[i*numAttr+j]=A[i*numAttr+j];
+            }
+            else
+            {
+                L[i*numAttr+j]=1;
+            }
+        }
+        for(int k=i;k<numAttr;k++)
+        {
+            U[i*numAttr+k]=A[i*numAttr+k];
+        }
+    }
+}
+
+double* ecall_dispatcher::LUP_Solve(double L[numAttr*numAttr],double U[numAttr*numAttr],int P[numAttr],double b[numAttr])
+{
+	double *x=new double[numAttr]();
+    double *y=new double[numAttr]();
+	
+    for(int i = 0;i < numAttr;i++)
+    {
+        y[i] = b[P[i]];
+        for(int j = 0;j < i;j++)
+        {
+            y[i] = y[i] - L[i*numAttr+j]*y[j];
+        }
+    }
+	
+    for(int i = numAttr-1;i >= 0; i--)
+    {
+        x[i]=y[i];
+        for(int j = numAttr-1;j > i;j--)
+        {
+            x[i] = x[i] - U[i*numAttr+j]*x[j];
+        }
+        x[i] /= U[i*numAttr+i];
+    }
+    return x;
+}
+
+int ecall_dispatcher::getNext(int i, int m, int n)
+{
+	return (i%n)*m + i/n;
+}
+
+int ecall_dispatcher::getPre(int i, int m, int n)
+{
+	return (i%m)*n + i/m;
+}
+
+void ecall_dispatcher::movedata(double *mtx, int i, int m, int n)
+{
+	double temp = mtx[i]; 
+	int cur = i;   
+	int pre = getPre(cur, m, n);
+	while(pre != i)
+	{
+		mtx[cur] = mtx[pre];
+		cur = pre;
+		pre = getPre(cur, m, n);
+	}
+	mtx[cur] = temp;
+}
+
+void ecall_dispatcher::transpose(double *mtx, int m, int n)
+{
+	for(int i=0; i<m*n; ++i)
+	{
+		int next = getNext(i, m, n);
+		while(next > i) 
+			next = getNext(next, m, n);
+		if(next == i)
+			movedata(mtx, i, m, n);
+	}
+}
+
+double* ecall_dispatcher::LUP_solve_inverse(double A[numAttr*numAttr])
+{
+	double* A_mirror = new double[numAttr*numAttr]();
+    double* inv_A = new double[numAttr*numAttr]();
+    double* inv_A_each = new double[numAttr]();
+    double* b = new double[numAttr]();
+
+    for(int i=0;i<numAttr;i++)
+    {
+        double *L=new double[numAttr*numAttr]();
+        double *U=new double[numAttr*numAttr]();
+        int *P=new int[numAttr]();
+
+        for(int i=0;i<numAttr;i++)
+        {
+            b[i]=0;
+        }
+        b[i]=1;
+
+        for(int i=0;i<numAttr*numAttr;i++)
+        {
+            A_mirror[i]=A[i];
+        }
+
+        LUP_Descomposition(A_mirror,L,U,P);
+
+        inv_A_each=LUP_Solve (L,U,P,b);
+        memcpy(inv_A+i*numAttr,inv_A_each,numAttr*sizeof(double));
+    }
+    transpose(inv_A,numAttr,numAttr);
+
+    return inv_A;
+}
+
+double* ecall_dispatcher::mul(double A[numAttr*numAttr],double B[numAttr*numAttr])
+{
+	double *C=new double[numAttr*numAttr]{};
+    for(int i=0;i<numAttr;i++)
+    {
+        for(int j=0;j<numAttr;j++)
+        {
+            for(int k=0;k<numAttr;k++)
+            {
+                C[i*numAttr+j] += A[i*numAttr+k]*B[k*numAttr+j];
+            }
+        }
+    }
+
+    for(int i=0;i<numAttr*numAttr;i++)
+    {
+        if(abs(C[i])<pow(10,-10))
+        {
+            C[i]=0;
+        }
+    }
+
+    return C;
 }
 
 // void ecall_dispatcher::display(int A[MatrixDim][MatrixDim])
