@@ -10,10 +10,10 @@
 // #define MatrixDim 32
 // #define MatrixDim 64
 
-// #define numAttr 2
+#define numAttr 2
 // #define numAttr 4
 // #define numAttr 6
-#define numAttr 8
+// #define numAttr 8
 // #define numAttr 16
 // #define numAttr 32
 // #define numAttr 64
