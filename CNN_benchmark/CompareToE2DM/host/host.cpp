@@ -1,10 +1,3 @@
-//
-//  main.cpp
-//  foSDSC
-//
-//  Created by Qifan Wang on 12/06/21.
-//
-
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -186,6 +179,7 @@ int main(int argc, const char * argv[]) {
     readckksMatpar(ckksmatpar, nrows, ncols, subdim); // subdim used in below RecMul
     ckksParams param(/*m=*/16 * 1024, /*bits=*/179, /*precision=*/20, /*c=*/2);
     // ckksParams param(/*m=*/16 * 1024, /*bits=*/300, /*precision=*/20, /*c=*/2);
+    // The below set can be used in E2DM baseline and comment the functions that invoke enclave.
     // ckksParams param(/*m=*/16 * 1024, /*bits=*/235, /*precision=*/20, /*c=*/4);
     ckksMeta meta;
     meta(param);

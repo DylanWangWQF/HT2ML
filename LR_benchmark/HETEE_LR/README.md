@@ -1,1 +1,1 @@
-# TEE-HE-PPML
+# LR training

@@ -1,10 +1,3 @@
-//
-//  CKKSmatrix_test.h
-//  ePPDSC
-//
-//  Created by Qifan Wang on 2/01/22.
-//
-
 #ifndef CKKSmatrix_test_h
 #define CKKSmatrix_test_h
 

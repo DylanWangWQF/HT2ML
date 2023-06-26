@@ -1,10 +1,3 @@
-//
-//  main.cpp
-//  cloneHElib
-//
-//  Created by Qifan Wang on 19/04/21.
-//
-
 #include <cmath>
 #include <iostream>
 #include <stdio.h>
@@ -19,6 +12,8 @@
 #include "CKKSmatrix.h"
 #include "CKKSmatrix_test.h"
 
+#include "Bootstrapping_params.h"
+
 using namespace std;
 
 int main(int argc, const char * argv[]) {
@@ -29,12 +24,12 @@ int main(int argc, const char * argv[]) {
         bool invalid = true;
         do
         {
-            cout << endl << "> Run example (1~8) or exit (0): ";
+            cout << endl << "> Run example (1~9) or exit (0): ";
             if (!(cin >> selection))
             {
                 invalid = false;
             }
-            else if (selection < 0 || selection > 8)
+            else if (selection < 0 || selection > 9)
             {
                 invalid = false;
             }
@@ -44,7 +39,7 @@ int main(int argc, const char * argv[]) {
             }
             if (!invalid)
             {
-                cout << "  Invalid option: type 0 ~ 8" << endl;
+                cout << "  Invalid option: type 0 ~ 9" << endl;
                 cin.clear();
             }
         } while (!invalid);
@@ -82,6 +77,10 @@ int main(int argc, const char * argv[]) {
             case 8:
                 cout << "CKKSmatrixTest testRMult_preprocessing: " << endl;
                 CKKSmatrixTest::testRMult_preprocessing(16, 4);
+                break;
+            case 9:
+                cout << "Find ParamsForBootstrapping: " << endl;
+                BootsParams::Find_ParamsForBootstrapping();
                 break;
 
             case 0:

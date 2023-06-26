@@ -1,10 +1,3 @@
-//
-//  DatasetOperations.h
-//  EHPPML
-//
-//  Created by Qifan Wang on 14/01/22.
-//
-
 #ifndef DatasetOperations_h
 #define DatasetOperations_h
 

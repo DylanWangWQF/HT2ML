@@ -1,10 +1,3 @@
-//
-//  hematrix.h
-//  cloneHElib
-//
-//  Created by Qifan Wang on 19/04/21.
-//
-
 #ifndef hematrix_h
 #define hematrix_h
 

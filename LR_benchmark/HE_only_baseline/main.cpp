@@ -1,9 +1,3 @@
-//
-//  Test_Regression.cpp
-//  ePPDSC
-//
-//  Created by Qifan Wang on 25/12/21.
-//
 
 #include <iostream>
 #include <stdio.h>
@@ -21,6 +15,7 @@ int main(int argc, const char * argv[]) {
     Mat<long> rawData;
     vector<long> labels;
     long dim;
+    //TODO: cxxopts::Options
     // string datafile = "/home/dylan/code/EHPPML/LR_benchmark/scripts/dataset.dat";
     // string datafile = "/home/dylan/code/EHPPML/LR_benchmark/scripts/2_dim_LR.dat";
     // string datafile = "/home/dylan/code/EHPPML/LR_benchmark/scripts/4_dim_LR.dat";

@@ -1,10 +1,3 @@
-//
-//  HEmatrix_test.cpp
-//  cloneHElib
-//
-//  Created by Qifan Wang on 25/04/21.
-//
-
 #include <cmath>
 #include <iostream>
 #include <stdio.h>

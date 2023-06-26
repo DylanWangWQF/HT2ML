@@ -1,10 +1,3 @@
-//
-//  LoadData.h
-//  mHT
-//
-//  Created by Qifan Wang on 27/05/21.
-//
-
 #ifndef LoadData_h
 #define LoadData_h
 

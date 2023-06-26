@@ -1,10 +1,3 @@
-//
-//  hematrix.cpp
-//  cloneHElib
-//
-//  Created by Qifan Wang on 21/04/21.
-//
-
 #include <cmath>
 #include <math.h>  // pow
 #include <iostream>

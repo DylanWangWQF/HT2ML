@@ -1,10 +1,3 @@
-//
-//  CKKSmatrix_test.cpp
-//  ePPDSC
-//
-//  Created by Qifan Wang on 2/01/22.
-//
-
 #include <cmath>
 #include <iostream>
 #include <stdio.h>

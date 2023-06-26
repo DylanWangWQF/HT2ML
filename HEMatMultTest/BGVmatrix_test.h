@@ -1,10 +1,3 @@
-//
-//  HEmatrix_test.h
-//  cloneHElib
-//
-//  Created by Qifan Wang on 25/04/21.
-//
-
 #ifndef HEmatrix_test_h
 #define HEmatrix_test_h
 

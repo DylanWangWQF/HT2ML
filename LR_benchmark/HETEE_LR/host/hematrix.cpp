@@ -1,10 +1,3 @@
-//
-//  hematrix.cpp
-//  cloneHElib
-//
-//  Created by Qifan Wang on 21/04/21.
-//
-
 #include <cmath>
 #include <math.h>  // pow
 #include <iostream>
@@ -62,7 +55,6 @@ void HEmatrix::encryptZmat(Ctxt& ctxt, Mat<long>& mat){
     vector<long> cmsg(meta.data->ea.size());
     
     NTL_EXEC_RANGE(HEmatpar.nrows, first, last);
-    //Fixme: int i maybe enough as in HEmat
     for(long i = first; i < last; ++i){
         for(long j = 0; j < HEmatpar.ncols; ++j){
             cmsg[i * HEmatpar.dim + j] = mat[i][j];
@@ -1202,7 +1194,6 @@ void HEmatrix::genMultBPoly(zzX*& Initpoly){
 void HEmatrix::genInitActxt(vector<Ctxt>& Actxts, Mat<long>& mat){
 //    Mat<ZZ>* Amat = new Mat<ZZ>[HEmatpar.dim];
     Mat<long>* Amat = new Mat<long>[HEmatpar.dim];
-    //Fixme: Is this definition correct?
     Actxts= vector<Ctxt>(HEmatpar.dim, Ctxt(meta.data->publicKey));
     vector<vector<long>> cmsg(HEmatpar.dim, vector<long>(HEmatpar.neededslots));
 
@@ -1354,7 +1345,6 @@ void HEmatrix::genInitRecActxt(vector<Ctxt>& Actxts, Mat<long>& mat){
     
     //! generate the (linear transformed) matrices
     Mat<long>* Amat = new Mat<long>[HEmatpar.subdim];
-    //Fixme: correct?
     Actxts = vector<Ctxt>(HEmatpar.subdim, Ctxt(meta.data->publicKey));
     
     NTL_EXEC_RANGE(HEmatpar.subdim, first, last);

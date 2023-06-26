@@ -1,10 +1,3 @@
-//
-//  main.cpp
-//  foSDSC
-//
-//  Created by Qifan Wang on 12/06/21.
-//
-
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -133,6 +126,7 @@ int main(int argc, const char * argv[]) {
     Mat<long>* TranDataMat;
     Mat<long>* LabelMat;
     long num_DataMat;
+    // TODO: use cxxopts::Options to formalize the input. Set all the inputs in the config.json
     string dataset = "../../scripts/2_dim_LR.dat";
     // string dataset = "../../scripts/4_dim_LR.dat";
     // string dataset = "../../scripts/6_dim_LR.dat";
@@ -272,6 +266,8 @@ int main(int argc, const char * argv[]) {
     cout << "Encrypting the data and labels..." << endl;
     client_start= chrono::steady_clock::now();
 
+    // TODO: can use flag to indicate original/optimised in json file
+
     // original-HE-encryption
     for (long i = 0; i < num_DataMat; ++i)
     {
@@ -363,6 +359,7 @@ int main(int argc, const char * argv[]) {
     host_timeElapsed = chrono::duration <double, milli> (host_diff).count()/1000.0;
 
     // Calculate total runtime
+    // We focus on training phase and ignore that enclave returns the final result
     end = std::chrono::steady_clock::now();
     diff = end - start;
     timeElapsed = chrono::duration <double, milli> (diff).count()/1000.0;

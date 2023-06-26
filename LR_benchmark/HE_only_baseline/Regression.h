@@ -1,10 +1,3 @@
-//
-//  Regression.h
-//  ePPDSC
-//
-//  Created by Qifan Wang on 25/12/21.
-//
-
 #ifndef Regression_h
 #define Regression_h
 

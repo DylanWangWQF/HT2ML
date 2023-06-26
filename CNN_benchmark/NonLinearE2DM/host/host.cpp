@@ -1,10 +1,3 @@
-//
-//  main.cpp
-//  foSDSC
-//
-//  Created by Qifan Wang on 12/06/21.
-//
-
 #include <iostream>
 #include <sstream>
 #include <string>

@@ -1,10 +1,3 @@
-//
-//  Regression.cpp
-//  ePPDSC
-//
-//  Created by Qifan Wang on 25/12/21.
-//
-
 #include <stdio.h>
 #include "Regression.h"
 

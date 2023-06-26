@@ -1,0 +1,1 @@
+This simple script for generating synthetic data is modified from the project [FHE-SI](https://github.com/dwu4/fhe-si)

@@ -6,6 +6,8 @@
 #include <helib/helib.h>
 #include <openenclave/enclave.h>
 
+// TODO: define this in json file
+
 #define MatrixDim 16
 // #define MatrixDim 32
 // #define MatrixDim 64
