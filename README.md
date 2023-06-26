@@ -148,3 +148,8 @@ cmake ..
 make
 make run
 ```
+
+
+## Disclaimer
+
+This open source project is for proof of concept purposes only and should not be used in production environments. 
