@@ -15,12 +15,12 @@ int main(int argc, const char * argv[]) {
     Mat<long> rawData;
     vector<long> labels;
     long dim;
-    //TODO: cxxopts::Options
-    // string datafile = "/home/dylan/code/EHPPML/LR_benchmark/scripts/dataset.dat";
-    // string datafile = "/home/dylan/code/EHPPML/LR_benchmark/scripts/2_dim_LR.dat";
-    // string datafile = "/home/dylan/code/EHPPML/LR_benchmark/scripts/4_dim_LR.dat";
-    // string datafile = "/home/dylan/code/EHPPML/LR_benchmark/scripts/6_dim_LR.dat";
-    string datafile = "/home/dylan/code/EHPPML/LR_benchmark/scripts/16_dim_LR.dat";
+    //TODO: use cxxopts::Options
+    // string datafile = "/home/dylan/code/HT2ML/LR_benchmark/scripts/dataset.dat";
+    // string datafile = "/home/dylan/code/HT2ML/LR_benchmark/scripts/2_dim_LR.dat";
+    // string datafile = "/home/dylan/code/HT2ML/LR_benchmark/scripts/4_dim_LR.dat";
+    // string datafile = "/home/dylan/code/HT2ML/LR_benchmark/scripts/6_dim_LR.dat";
+    string datafile = "/home/dylan/code/HT2ML/LR_benchmark/scripts/16_dim_LR.dat";
     
     if (!LoadData(rawData, labels, dim, datafile))
         return 0;
@@ -53,21 +53,6 @@ int main(int argc, const char * argv[]) {
     vector<vector<vector<long>>> ptxtData;
     vector<vector<long>> ptxtLabels;
     BatchData(ptxtData, ptxtLabels, rawData, labels, param.p, meta.data->ea.size());
-
-    // cout << "Check the batch data:" << endl;
-    // for (int i = 0; i < ptxtData.size(); i++)
-    // {
-    //     cout << "1st dimension of i = " << i << endl;
-    //     for (int j = 0; j < ptxtData[0].size(); j++)
-    //     {
-    //         for (int k = 0; k < ptxtData[0][0].size(); k++)
-    //         {
-    //             cout << ptxtData[i][j][k] << " ";
-    //         }
-    //         cout << endl;
-    //     }
-    //     cout << endl;
-    // }
     
     //setup stringstream
     stringstream ss;

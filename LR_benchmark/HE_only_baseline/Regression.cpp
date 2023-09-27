@@ -47,15 +47,8 @@ void BatchData(vector<vector<vector<long>>> &ptxtData, vector<vector<long>> &ptx
             // pad zero to columnBatch
             if (columnBatch.size() < nslots)
             {
-//                cout << j << "-th column's size before pad = " << columnBatch.size() << endl;
-//                for (long dummy = 0; dummy < (nslots - columnBatch.size()); dummy++)
-//                {
-//                    columnBatch.push_back(0);
-//                    if(j == 0) curLabel.push_back(0);
-//                }
                 columnBatch.resize(nslots, 0);
                 if(j == 0) curLabel.resize(nslots, 0);
-//                cout << j << "-th column's size after pad = " << columnBatch.size() << endl;
             }
             row.push_back(columnBatch);
         }
@@ -203,26 +196,7 @@ void RegressPT(vector<long> &theta, long &det, Mat<long> &data, vector<long> &la
     A.Transpose();
 
     PtMatrix<long> tmp = A * labels;
-    
-    // Check the result of A * labels
-    cout << endl << "1. The result of A * labels!" << endl;
-    for (int i = 0; i < tmp.NumRows(); i++) {
-        for (int j = 0; j < tmp.NumCols(); j++) {
-            cout << tmp(i,j) << " ";
-        }
-        cout << endl;
-    }
-    cout << endl;
-
     A.MultByTranspose();
-    cout << endl << "2. The result of A^T * A!" << endl;
-    for (int i = 0; i < A.NumRows(); i++) {
-        for (int j = 0; j < A.NumCols(); j++) {
-            cout << A(i,j) << " ";
-        }
-        cout << endl;
-    }
-    cout << endl;
     
     if (data.NumCols() == 1)
     {
@@ -232,15 +206,6 @@ void RegressPT(vector<long> &theta, long &det, Mat<long> &data, vector<long> &la
     }
 
     A.Invert(det);
-    cout << endl << "3. The result of Invert(A)!" << endl;
-    for (int i = 0; i < A.NumRows(); i++) {
-        for (int j = 0; j < A.NumCols(); j++) {
-            cout << A(i,j) << " ";
-        }
-        cout << endl;
-    }
-    cout << endl;
-    
     A *= tmp;
 
     theta.resize(A.NumRows());

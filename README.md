@@ -18,6 +18,8 @@
 HT2ML is a C++-based framework for privacy-preserving machine learning (PPML) based on Homomorphic Encryption (HE) and Intel SGX.
 To accelerate the HE-based computations, HT2ML selectively outsources HE-unfriendly computations to the SGX enclave while preseving the integrity and privacy of the computation.
 
+This repository is the source code for the paper which is accepted for publication in Journal of Computer & Security, 2023 (The link of the paper is coming soon).
+
 ### Dependencies
 
 HT2ML runs with three dependencies: 
