@@ -1,9 +1,9 @@
-clang++ -pthread -std=c++17 main.cpp /home/dylan/code/HT2ML/src/data/*.cpp /home/dylan/code/HT2ML/src/utils/*.cpp /home/dylan/code/HT2ML/src/HEMat/*.cpp -o TestData -Wall -g -O3 -std=c++17 -I/home/dylan/code/HT2ML/src/data -I/home/dylan/code/HT2ML/src/utils -I/home/dylan/code/HT2ML/src/HEMat -I/usr/local/include -L/usr/local/lib /usr/local/lib/libhelib.a /usr/local/lib/libntl.a /usr/local/lib/libgmp.a -lm
+# clang++ -pthread -std=c++17 main.cpp /home/dylan/code/HT2ML/src/data/*.cpp /home/dylan/code/HT2ML/src/utils/*.cpp /home/dylan/code/HT2ML/src/HEMat/*.cpp -o TestData -Wall -g -O3 -std=c++17 -I/home/dylan/code/HT2ML/src/data -I/home/dylan/code/HT2ML/src/utils -I/home/dylan/code/HT2ML/src/HEMat -I/usr/local/include -L/usr/local/lib /usr/local/lib/libhelib.a /usr/local/lib/libntl.a /usr/local/lib/libgmp.a -lm
+# clang++ -g -pthread -std=c++17 main.cpp /home/dylan/code/HT2ML/src/data/*.cpp /home/dylan/code/HT2ML/src/utils/*.cpp /home/dylan/code/HT2ML/src/HEMat/*.cpp -o TestData -Wall -g -O3 -std=c++17 -I/home/dylan/code/HT2ML/src/data -I/home/dylan/code/HT2ML/src/utils -I/home/dylan/code/HT2ML/src/HEMat -I/usr/local/include -L/usr/local/lib /usr/local/lib/libhelib.a /usr/local/lib/libntl.a /usr/local/lib/libgmp.a -lm
+# clang++ -pthread -std=c++17 /home/dylan/code/HETEE/HEMatMultTest/*.cpp -o TestHEMat -O3 -I/home/dylan/code/HETEE/HEMatMultTest -I/usr/local/include -L/usr/local/lib /usr/local/lib/libhelib.a /usr/local/lib/libntl.a /usr/local/lib/libgmp.a -lm
 
-
-
-clang++ -g -pthread -std=c++17 main.cpp /home/dylan/code/HT2ML/src/data/*.cpp /home/dylan/code/HT2ML/src/utils/*.cpp /home/dylan/code/HT2ML/src/HEMat/*.cpp -o TestData -Wall -g -O3 -std=c++17 -I/home/dylan/code/HT2ML/src/data -I/home/dylan/code/HT2ML/src/utils -I/home/dylan/code/HT2ML/src/HEMat -I/usr/local/include -L/usr/local/lib /usr/local/lib/libhelib.a /usr/local/lib/libntl.a /usr/local/lib/libgmp.a -lm
-
-
-
-clang++ -pthread -std=c++17 /home/dylan/code/HETEE/HEMatMultTest/*.cpp -o TestHEMat -O3 -I/home/dylan/code/HETEE/HEMatMultTest -I/usr/local/include -L/usr/local/lib /usr/local/lib/libhelib.a /usr/local/lib/libntl.a /usr/local/lib/libgmp.a -lm
+# The compile command below should work. I have tested g++ and it also works here (for this matrix test repo). I use clang is due to the entire program's need.
+# YourLocalPath is your own path where stores this repo.
+# -I/usr/local/include -L/usr/local/lib /usr/local/lib/libhelib.a /usr/local/lib/libntl.a /usr/local/lib/libgmp.a is the system paths that you install the HElib, NTL, and GMP libs.
+# -lm means NTL/GMP requires math library, libgmp.a ought to come after libntl.a since NTL depends on GMP
+clang++ -pthread -std=c++17 main.cpp /~YourLocalPath~/HEMatMultTest/*.cpp -o TestHEMat -O3 -I/~YourLocalPath~/HEMatMultTest -I/usr/local/include -L/usr/local/lib /usr/local/lib/libhelib.a /usr/local/lib/libntl.a /usr/local/lib/libgmp.a -lm

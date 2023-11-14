@@ -17,7 +17,7 @@
 using namespace std;
 
 int main(int argc, const char * argv[]) {
-    SetNumThreads(16);
+    SetNumThreads(16); // nums depends on your system configs
 
     while (true) {
         int selection = 0;

@@ -10,8 +10,10 @@
 #include <NTL/ZZ.h>
 #include <NTL/ZZX.h>
 #include "NTL/RR.h"
-#include "NTL/vec_RR.h"
-#include "NTL/mat_RR.h"
+// #include "NTL/vec_RR.h"
+// #include "NTL/mat_RR.h"
+#include <NTL/vec_RR.h>
+#include <NTL/mat_RR.h>
 #include <NTL/BasicThreadPool.h>
 #include <NTL/mat_ZZ.h>
 #include <helib/helib.h>

@@ -1,13 +1,19 @@
 #include "Bootstrapping_params.h"
-#include "../src/helib/helib.h"
-#include "../src/helib/NumbTh.h"
-#include "../src/helib/PAlgebra.h"
 #include <iomanip>
 #include <fstream>
+
+// #include "../src/helib/helib.h"
+// #include "../src/helib/NumbTh.h"
+// #include "../src/helib/PAlgebra.h"
+#include <helib/helib.h>
+#include <helib/NumbTh.h>
+#include <helib/PAlgebra.h>
 
 using namespace std;
 using namespace NTL;
 using namespace helib;
+
+// This file is from HElib lib
 
 // A heuristic measure for how good a certain (depth,cost) is
 long weighted_cost(long cost, long depth)
