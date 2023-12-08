@@ -312,15 +312,15 @@ void CKKSmatrixTest::testMult_preprocessing(long nrows){
 
     CKKSmatrix.encryptRmat(Bctxt, Bmat);
 
-    stringstream ss;
-    for (int i = 0; i < Actxts.size(); i++)
-    {
-        Actxts[i].writeTo(ss);
-    }
-    string ClientTemp = ss.str();
-    uint64_t client_totalLength = ClientTemp.size();
+    // stringstream ss;
+    // for (int i = 0; i < Actxts.size(); i++)
+    // {
+    //     Actxts[i].writeTo(ss);
+    // }
+    // string ClientTemp = ss.str();
+    // uint64_t client_totalLength = ClientTemp.size();
     
-    cout << "Ciphertext size = : " << ((double) client_totalLength / (double)(1024 * 1024)) << " MB" << endl;
+    // cout << "Ciphertext size = : " << ((double) client_totalLength / (double)(1024 * 1024)) << " MB" << endl;
     
     /*---------------------------------------*/
     //  GenPoly
@@ -362,19 +362,19 @@ void CKKSmatrixTest::testMult_preprocessing(long nrows){
     /*---------------------------------------*/
     //  Error
     /*---------------------------------------*/
-    // Mat<RR> resmat;
-    // mul(resmat, Amat, Bmat);
+    Mat<RR> resmat;
+    mul(resmat, Amat, Bmat);
     
-    // RR error = getError(resmat, CKKSresmat, nrows, ncols);
-    // cout << "Error (mul): " << error << endl;
+    RR error = getError(resmat, CKKSresmat, nrows, ncols);
+    cout << "Error (mul): " << error << endl;
     
-    // cout << "------------------" << endl;
-    // cout << "Plaintext" << endl;
-    // printRmatrix(resmat, nrows);
-    // cout << "------------------" << endl;
-    // cout << "Encryption" << endl;
-    // printRmatrix(CKKSresmat, nrows);
-    // cout << "------------------" << endl;
+    cout << "------------------" << endl;
+    cout << "Plaintext" << endl;
+    printRmatrix(resmat, nrows);
+    cout << "------------------" << endl;
+    cout << "Encryption" << endl;
+    printRmatrix(CKKSresmat, nrows);
+    cout << "------------------" << endl;
 }
 
 void CKKSmatrixTest::testRMult_preprocessing(long nrows, long subdim){
