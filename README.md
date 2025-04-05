@@ -151,6 +151,20 @@ make
 make run
 ```
 
+## Citations
+If you use `HT2ML` in an academic work, please reference it using:
+```
+@article{wang2023ht2ml,
+  title={HT2ML: An efficient hybrid framework for privacy-preserving Machine Learning using HE and TEE},
+  author={Wang, Qifan and Zhou, Lei and Bai, Jianli and Koh, Yun Sing and Cui, Shujie and Russello, Giovanni},
+  journal={Computers \& Security},
+  volume={135},
+  pages={103509},
+  year={2023},
+  publisher={Elsevier}
+}
+```
+
 
 ## Disclaimer
 
